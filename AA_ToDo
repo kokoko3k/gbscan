@@ -1,0 +1,32 @@
+scelta scanner all'avvio
+
+output su pdf anche di documenti multipli
+
+
+nella scansione multipagina, non visualizzare i messaggi di errore, o buttarli in un log in un' ultima tab
+ocr?
+NO: ridimensionare una immagine è semplice e si può fare con gambas stesso, dato che noi già conosciamo il rapporto d'aspetto a priori ;)
+    inoltre essa andrà fatta solo aumentando, senza diminuire per non perdere definizione
+    ...ma ricorda che quando la ruoti di 90 o -90 le dimensioni vanno invertite
+
+
+ricorda che l'opzione monitor di convert rallenta, quindi forse va benbe controllare il file di uscita (la cui lunghezza sarà calcolabile a partire dalla risoluzione)
+
+Multipagina
+  E gestire lo stop del multipagina
+  
+aggiungere effetto negativo
+
+considerare quanto si perde a non usare la pipe, in tal modo potrebbe anche convenire per mostrare due barre di progresso
+
+e/o applicare l'effetto mentre lo scanner passa alla pagina successiva
+'Il resize della preview è imperativo per correggere il bug del driver dello scanner, in quanto altrimenti il crop sulla preview è inconsistente e tagli troppo
+
+dare messaggio di ok quando l'immagine è stata salvate
+
+Quando si fa preview sulla destra per lo scanner e già c'è una preview in memoria, offri la possibilità di usare quella, oppure aggiungi un pulsante "ritaglia ancora"
+che lo afa in automatico e che è disabled di default, ma si attiva dopo una scansione riuscita.
+
+
+quando si fa scan e save, non ci sono messaggi sul progresso
+

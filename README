@@ -1,0 +1,34 @@
+gbScan
+====
+Gambas gui to scanimage
+
+
+
+Depends:
+=======
+qt4
+Gambas3 runtimes:
+	gb
+	gb.desktop
+	gb.form
+	gb.form,dialog
+	gb.qt4
+	gb.qt4.ext
+	gb.pdf
+	gb.image
+	gb.image.effect
+	gb.image.imlib
+
+If you want some postprocessing options, install imagemagick too
+
+
+Download and run:
+=================
+git clone https://github.com/kokoko3k/gbscan.git
+cd gbscan
+gbc3 -e -a -g -t -p -m && gba3 && ./*.gambas
+
+ToDo:
+=================
+Make multiple scanner selection work
+Save scanner settings when quit

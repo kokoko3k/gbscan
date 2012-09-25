@@ -1,0 +1,596 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,113,93)
+  Arrangement = Arrange.Fill
+  Padding = 4
+  { HSplit1 HSplit
+    MoveScaled(2,1,111,90)
+    { TabStrip1 TabStrip
+      MoveScaled(1,2,49,88)
+      Expand = True
+      Arrangement = Arrange.Vertical
+      Padding = 4
+      Count = 2
+      Index = 0
+      Text = ("Scan")
+      Picture = Picture["icon:/small/open"]
+      { Vbox1 ScrollView
+        MoveScaled(1,0,46,23)
+        Background = Color.TextBackground
+        Expand = True
+        Arrangement = Arrange.Vertical
+        Padding = 4
+        { HBox1 VBox
+          MoveScaled(0,0,53,7)
+          Padding = 2
+          { label1 TextLabel
+            MoveScaled(1,0,8,4)
+            Font = Font["Bold"]
+            AutoResize = True
+            Text = ("Scanner:")
+            Alignment = Align.BottomLeft
+          }
+          { ComboScanner ComboBox
+            MoveScaled(1,3,50,3)
+            Expand = True
+            ReadOnly = True
+          }
+        }
+      }
+      { Separator6 Separator
+        MoveScaled(0,23,43,2)
+      }
+      { HBox12 HBox
+        MoveScaled(1,26,48,3.7143)
+        Spacing = True
+        Padding = 4
+        { Label9 Label
+          MoveScaled(1,1,13,3)
+          Text = ("Quality:")
+        }
+        { SliderQ Slider
+          MoveScaled(17,0,18,4)
+          Expand = True
+          MinValue = 1
+          Value = 80
+        }
+        { SpinBoxQ SpinBox
+          MoveScaled(37,0,8,3)
+          MinValue = 1
+          Value = 80
+        }
+      }
+      { Separator5 Separator
+        MoveScaled(2,31,43,1)
+      }
+      { Label2 Label
+        MoveScaled(1,34,40,3)
+        Font = Font["Bold"]
+        Text = ("Scan Area")
+        Alignment = Align.BottomLeft
+      }
+      { Panel1 ScrollView
+        MoveScaled(1,37,48,24)
+        Background = &HD7D7D7&
+        Arrangement = Arrange.Vertical
+        Spacing = True
+        Padding = 4
+        { HBox6 HBox
+          MoveScaled(1,1,45,5)
+          Padding = 4
+          { Label6 Label
+            MoveScaled(1,0,9,3)
+            Text = ("Start X")
+          }
+          { SliderX Slider SlidersG
+            Name = "SliderX"
+            MoveScaled(11,0,24,4)
+            Expand = True
+          }
+          { SpinBoxX SpinBox SpinBoxG
+            Name = "SpinBoxX"
+            MoveScaled(36,0,8,3)
+          }
+        }
+        { HBox5 HBox
+          MoveScaled(1,6,45,5)
+          Padding = 4
+          { Label5 Label
+            MoveScaled(1,0,9,3)
+            Text = ("Start Y")
+          }
+          { SliderY Slider SlidersG
+            Name = "SliderY"
+            MoveScaled(11,0,24,4)
+            Expand = True
+          }
+          { SpinBoxY SpinBox SpinBoxG
+            Name = "SpinBoxY"
+            MoveScaled(36,0,8,3)
+          }
+        }
+        { HBox3 HBox
+          MoveScaled(1,11,45,5)
+          Padding = 4
+          { Label3 Label
+            MoveScaled(1,0,9,3)
+            Text = ("Width")
+          }
+          { SliderW Slider SlidersG
+            Name = "SliderW"
+            MoveScaled(11,0,24,4)
+            Expand = True
+          }
+          { SpinBoxW SpinBox SpinBoxG
+            Name = "SpinBoxW"
+            MoveScaled(36,0,8,3)
+          }
+        }
+        { HBox4 HBox
+          MoveScaled(1,16,45,5)
+          Padding = 4
+          { Label4 Label
+            MoveScaled(1,1,9,3)
+            Text = ("Height")
+          }
+          { SliderH Slider SlidersG
+            Name = "SliderH"
+            MoveScaled(11,0,24,4)
+            Expand = True
+          }
+          { SpinBoxH SpinBox SpinBoxG
+            Name = "SpinBoxH"
+            MoveScaled(36,0,8,3)
+          }
+        }
+      }
+      Index = 1
+      Text = ("Image Effects")
+      Picture = Picture["icon:/small/edit"]
+      { Panel3 ScrollView
+        MoveScaled(1,1,50,76)
+        Expand = True
+        Arrangement = Arrange.Vertical
+        Spacing = True
+        Margin = True
+        Padding = 4
+        { HBox37 Panel
+          MoveScaled(1,1,41,5)
+          Background = Color.TextBackground
+          Arrangement = Arrange.Horizontal
+          Border = Border.Plain
+          { PictureBox3 PictureBox
+            MoveScaled(0,0,5,5)
+            Picture = Picture["ImageMagick.gif"]
+            Alignment = Align.BottomLeft
+          }
+          { Label12 Label
+            MoveScaled(6,0,17,4)
+            Font = Font["Bold"]
+            Text = ("ImageMagick:")
+            Alignment = Align.Left
+          }
+        }
+        { HBox24 HBox
+          MoveScaled(1,9,48,3.7143)
+          Spacing = True
+          Padding = 4
+          { despeckle CheckBox CheckboxesF
+            Name = "despeckle"
+            MoveScaled(0,0,18,4)
+            ToolTip = ("reduce the speckles within an image.")
+            AutoResize = True
+            Text = ("Despekle")
+          }
+        }
+        { HBox19 HBox
+          MoveScaled(1,13,48,3.7143)
+          ToolTip = ("straighten an image. A threshold of 40% works for most images.")
+          Spacing = True
+          Padding = 4
+          { deskew CheckBox CheckboxesF
+            Name = "deskew"
+            MoveScaled(0,0,19,4)
+            Text = ("Deskew (%)")
+          }
+          { SliderQ2 Slider SlidersF
+            Name = "SliderQ2"
+            MoveScaled(16,0,18,4)
+            Expand = True
+            Value = 40
+          }
+          { SpinBoxQ2 SpinBox SpinBoxesF
+            Name = "SpinBoxQ2"
+            MoveScaled(37,0,8,3)
+            Value = 40
+          }
+        }
+        { HBox15 HBox
+          MoveScaled(1,17,48,3.7143)
+          ToolTip = ("Apply Paeth image rotation (using shear operations) to the image.")
+          Spacing = True
+          Padding = 4
+          { rotate CheckBox CheckboxesF
+            Name = "rotate"
+            MoveScaled(0,0,19,4)
+            Text = ("Rotate")
+          }
+          { ComboBox2 ComboBox
+            MoveScaled(14,0,15,3)
+            List = [("-90"), ("90"), ("180"), ("270")]
+            Text = ("90")
+          }
+        }
+        { Separator4 Separator
+          MoveScaled(11,22,31,1)
+        }
+        { HBox16 HBox
+          MoveScaled(1,25,48,3.7143)
+          ToolTip = ("Automagically adjust gamma level of image.")
+          Spacing = True
+          Padding = 4
+          { autogamma CheckBox CheckboxesF
+            Name = "autogamma"
+            MoveScaled(0,0,19,4)
+            AutoResize = True
+            Text = ("Auto Gamma")
+          }
+        }
+        { HBox22 HBox
+          MoveScaled(1,29,48,3.7143)
+          ToolTip = ("Automagically adjust color levels of image.")
+          Spacing = True
+          Padding = 4
+          { autolevel CheckBox CheckboxesF
+            Name = "autolevel"
+            MoveScaled(0,0,19,4)
+            AutoResize = True
+            Text = ("Auto level")
+          }
+        }
+        { HBox17 HBox
+          MoveScaled(1,33,48,3.7143)
+          ToolTip = ("Force to black all pixels below the threshold while leaving all pixels at or above the threshold unchanged.")
+          Spacing = True
+          Padding = 4
+          { blackthreshold CheckBox CheckboxesF
+            Name = "blackthreshold"
+            MoveScaled(0,0,19,4)
+            Text = ("Black-Threshold")
+          }
+          { SliderQ4 Slider SlidersF
+            Name = "SliderQ4"
+            MoveScaled(21,0,18,4)
+            Expand = True
+            Value = 10
+          }
+          { SpinBoxQ4 SpinBox SpinBoxesF
+            Name = "SpinBoxQ4"
+            MoveScaled(39,0,8,3)
+            Value = 10
+          }
+        }
+        { HBox18 HBox
+          MoveScaled(1,37,48,3.7143)
+          ToolTip = ("Force all pixels above the threshold into Black")
+          Spacing = True
+          Padding = 4
+          { whitethreshold CheckBox CheckboxesF
+            Name = "whitethreshold"
+            MoveScaled(0,0,19,4)
+            Text = ("White-Threshold")
+          }
+          { SliderQ5 Slider SlidersF
+            Name = "SliderQ5"
+            MoveScaled(21,0,18,4)
+            Expand = True
+            Value = 90
+          }
+          { SpinBoxQ5 SpinBox SpinBoxesF
+            Name = "SpinBoxQ5"
+            MoveScaled(39,0,8,3)
+            Value = 90
+          }
+        }
+        { HBox25 HBox
+          MoveScaled(1,42,48,3.7143)
+          ToolTip = ("Increase the contrast in an image by stretching the range of intensity values.")
+          Spacing = True
+          Padding = 4
+          { contraststretch CheckBox CheckboxesF
+            Name = "contraststretch"
+            MoveScaled(0,0,19,4)
+            Text = ("Contrast Stretch")
+          }
+          { SliderQ6 Slider SlidersF
+            Name = "SliderQ6"
+            MoveScaled(21,0,18,4)
+            Expand = True
+            MaxValue = 1000
+            Value = 90
+          }
+          { SpinBoxQ6 SpinBox SpinBoxesF
+            Name = "SpinBoxQ6"
+            MoveScaled(39,0,8,3)
+            MaxValue = 1000
+            Value = 100
+          }
+        }
+        { HBox21 HBox
+          MoveScaled(1,47,48,3.7143)
+          ToolTip = ("\treduce the image to a limited number of color levels")
+          Spacing = True
+          Padding = 4
+          { posterize CheckBox CheckboxesF
+            Name = "posterize"
+            MoveScaled(0,0,19,4)
+            Text = ("Posterize")
+          }
+          { SliderQ7 Slider SlidersF
+            Name = "SliderQ7"
+            MoveScaled(21,0,18,4)
+            Expand = True
+            MinValue = 2
+            MaxValue = 256
+            Value = 16
+          }
+          { SpinBoxQ7 SpinBox SpinBoxesF
+            Name = "SpinBoxQ7"
+            MoveScaled(40,0,8,3)
+            MinValue = 2
+            MaxValue = 256
+            Value = 16
+          }
+        }
+        { Separator3 Separator
+          MoveScaled(9,51,35,1)
+        }
+        { HBox23 HBox
+          MoveScaled(1,53,48,3.7143)
+          ToolTip = ("<0 = reduce image noise and reduce detail levels.\n>0 = increase detail levels and image noise")
+          Spacing = True
+          Padding = 4
+          { blursharpen CheckBox CheckboxesF
+            Name = "blursharpen"
+            MoveScaled(0,0,19,4)
+            Text = ("Blur/Sharpen")
+          }
+          { SliderQ3 Slider SlidersF
+            Name = "SliderQ3"
+            MoveScaled(21,0,18,4)
+            Expand = True
+            MinValue = -20
+            MaxValue = 20
+            Value = 4
+          }
+          { SpinBoxQ3 SpinBox SpinBoxesF
+            Name = "SpinBoxQ3"
+            MoveScaled(39,0,8,3)
+            MinValue = -20
+            MaxValue = 20
+            Value = 4
+          }
+        }
+        { Separator2 Separator
+          MoveScaled(4,57,43,1)
+        }
+        { HBox20 HBox
+          MoveScaled(1,59,48,3.4286)
+          Spacing = True
+          Padding = 4
+          { CheckBoxF5 CheckBox CheckboxesF
+            Name = "CheckBoxF5"
+            MoveScaled(0,0,19,4)
+            Text = ("Custom 1:")
+          }
+          { TextBox1 TextBox
+            MoveScaled(14,0,33,3)
+            Expand = True
+          }
+        }
+        { HBox40 HBox
+          MoveScaled(1,64,48,3.4286)
+          Spacing = True
+          Padding = 4
+          { CheckBoxF19 CheckBox CheckboxesF
+            Name = "CheckBoxF19"
+            MoveScaled(0,0,19,4)
+            Text = ("Custom 2:")
+          }
+          { TextBox2 TextBox
+            MoveScaled(14,0,33,3)
+            Expand = True
+          }
+        }
+        { HBox41 HBox
+          MoveScaled(1,68,48,3.4286)
+          Spacing = True
+          Padding = 4
+          { CheckBoxF20 CheckBox CheckboxesF
+            Name = "CheckBoxF20"
+            MoveScaled(0,0,19,4)
+            Text = ("Custom 3:")
+          }
+          { TextBox3 TextBox
+            MoveScaled(14,0,33,3)
+            Expand = True
+          }
+        }
+      }
+      { HBox39 HBox
+        MoveScaled(2,78,45,5)
+        Spacing = True
+        { ButtonPreview2 Button
+          MoveScaled(0,0,14,4)
+          Enabled = False
+          AutoResize = True
+          Text = ("Try filters")
+          Picture = Picture["icon:/medium/wizard"]
+        }
+        { ButtonPreview3 Button
+          MoveScaled(14,0,14,4)
+          Enabled = False
+          AutoResize = True
+          Text = ("Undo")
+          Picture = Picture["icon:/medium/undo"]
+        }
+        { Label13 Label
+          MoveScaled(29,1,15,3)
+          Expand = True
+          Alignment = Align.Center
+        }
+      }
+      Index = 0
+    }
+    { VBox2 VBox
+      MoveScaled(50,3,61,88)
+      Expand = True
+      Spacing = True
+      Padding = 3
+      { OuterBox Panel
+        MoveScaled(1,13,54,63)
+        Background = &H000000&
+        Expand = True
+        Arrangement = Arrange.Vertical
+        { PictureBox1 PictureBox
+          MoveScaled(6,17,37,35)
+          Background = Color.LightForeground
+          Tracking = True
+          Expand = True
+          Ignore = True
+          Picture = Picture["icon:/128/wizard"]
+          Stretch = True
+          Border = Border.Plain
+        }
+        { CropArea Panel
+          MoveScaled(6,27,37,25)
+          Visible = False
+          Ignore = True
+          Arrangement = Arrange.Vertical
+          Border = Border.Plain
+          { HBox7 HBox
+            MoveScaled(0,0,37,2)
+            { HandleTopLeft Panel
+              MoveScaled(0,0,2,2)
+              Background = &HFF0000&
+            }
+            { VBox5 VBox
+              MoveScaled(14,0,8,2)
+              Expand = True
+            }
+            { HandleTopRight Panel
+              MoveScaled(35,0,2,2)
+              Background = &HFF0000&
+            }
+          }
+          { VBox3 VBox
+            MoveScaled(9,3,18,4)
+            Expand = True
+          }
+          { HBox9 HBox
+            MoveScaled(0,11,37,2)
+            { VBox7 VBox
+              MoveScaled(2,0,8,2)
+              Expand = True
+            }
+            { HandleCenter Panel
+              MoveScaled(17,0,2,2)
+              Background = &HFF0000&
+            }
+            { VBox8 VBox
+              MoveScaled(26,0,8,2)
+              Expand = True
+            }
+          }
+          { VBox6 VBox
+            MoveScaled(10,18,18,4)
+            Expand = True
+          }
+          { HBox8 HBox
+            MoveScaled(0,23,37,2)
+            { HandleBottomLeft Panel
+              MoveScaled(0,0,2,2)
+              Background = &HFF0000&
+            }
+            { VBox4 VBox
+              MoveScaled(15,0,8,2)
+              Expand = True
+            }
+            { HandleBottomRight Panel
+              MoveScaled(35,0,2,2)
+              Background = &HFF0000&
+            }
+          }
+        }
+      }
+      { BottomBox HBox
+        MoveScaled(1,77,54,4)
+        Visible = False
+        Spacing = True
+        Padding = 4
+        { TextWaiting TextLabel
+          MoveScaled(0,1,6,3)
+          Visible = False
+          Expand = True
+          Text = ("Waiting for scanner")
+        }
+        { ProgressBar1 ProgressBar
+          MoveScaled(7,0,9,3)
+          Expand = True
+        }
+        { ButtonCancel Button
+          MoveScaled(18,0,13,4)
+          Visible = False
+          AutoResize = True
+          Text = ("Stop")
+          Picture = Picture["icon:/medium/cancel"]
+        }
+      }
+      { HBox2 HBox
+        MoveScaled(1,83,54,4)
+        Spacing = True
+        Padding = 4
+        { VBox9 VBox
+          MoveScaled(0,0,8,4)
+          Expand = True
+        }
+        { ButtonPreview Button
+          MoveScaled(0,0,11,4)
+          AutoResize = True
+          Text = ("Preview")
+          Picture = Picture["icon:/medium/find"]
+        }
+        { ButtonSaveNow Button
+          MoveScaled(11,0,14,4)
+          Enabled = False
+          AutoResize = True
+          Text = ("Save")
+          Picture = Picture["icon:/medium/save-as"]
+        }
+        { ButtonScan Button
+          MoveScaled(25,0,17,4)
+          AutoResize = True
+          Text = ("Scan and save")
+          Picture = Picture["icon:/medium/insert-image"]
+        }
+        { ButtonScan2 Button
+          MoveScaled(42,0,14,4)
+          AutoResize = True
+          Text = ("Multipage")
+          Picture = Picture["icon:/medium/copy"]
+        }
+      }
+      { BigLabel Label
+        MoveScaled(4,0,48,8)
+        Visible = False
+        Font = Font["Bold,+4"]
+        Background = Color.SelectedForeground
+        Ignore = True
+        Text = ("PAGE 1")
+        Alignment = Align.Center
+        Border = Border.Plain
+      }
+    }
+  }
+}
