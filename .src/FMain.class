@@ -23,7 +23,6 @@ Public Sub _new()
 End
 
 Public Sub Form_Open()
-Print "ciao"
   Me.Center
   Wait
   If Init() = 0 Then 

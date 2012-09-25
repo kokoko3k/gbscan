@@ -13,5 +13,4 @@ Component=gb.image.imlib
 Component=gb.pdf
 Component=gb.qt4.ext
 TabSize=2
-ExecPath=gbscan.gambas
 Packager=1
