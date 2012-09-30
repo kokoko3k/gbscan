@@ -19,7 +19,8 @@ Gambas3 runtimes:
 	gb.image.effect
 	gb.image.imlib
 
-If you want some postprocessing options, install imagemagick too
+imagemagick
+
 
 
 Download and run:
