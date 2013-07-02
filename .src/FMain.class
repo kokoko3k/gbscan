@@ -65,7 +65,7 @@ Public Sub MakeCombo(option As String, description As String)
   mycheckbox.tag = Mid$(Split(option, " ", "", True)[0], 3)
   checkname = "mycheck_" & mycheckbox.tag
   mycheckbox.name = checkname
-  mycheckbox.value = Not (option Like "* \\[inactive\\]")
+  mycheckbox.value = 0 'Not (option Like "* \\[inactive\\]")
   mycheckbox.text = mycheckbox.tag
   mycheckbox.AutoResize = True
 
@@ -111,7 +111,7 @@ Public Sub MakeYesNo(option As String, description As String)
   mycheckbox.tag = Mid$(Split(option, "[", "", True)[0], 3) & "="
   checkname = "mycheck_" & mycheckbox.tag
   mycheckbox.name = checkname
-  mycheckbox.value = Not (option Like "* \\[inactive\\]")
+  mycheckbox.value = 0 'Not (option Like "* \\[inactive\\]")
   mycheckbox.text = mycheckbox.tag
   mycheckbox.AutoResize = True
 
@@ -159,7 +159,7 @@ Public Sub MakeRange(option As String, description As String)
   mycheckbox.tag = Mid$(Split(option, " ", "", True)[0], 3)
   checkname = "mycheck_" & mycheckbox.Tag
   mycheckbox.name = checkname
-  mycheckbox.value = Not (option Like "* \\[inactive\\]")
+  mycheckbox.value = 0 'Not (option Like "* \\[inactive\\]")
   mycheckbox.text = mycheckbox.tag
   mycheckbox.AutoResize = True
   
@@ -1307,6 +1307,17 @@ Public Function ParseEffects() As String
        effopt &= " -sharpen " & Squote(Abs(sliderq3.value))
     Endif
   Endif
+
+  If checkboxf5 Then
+     effopt &= " " & textbox1.text & " "
+  Endif
+  If checkboxf19 Then
+     effopt &= " " & textbox2.text & " "
+  Endif
+  If checkboxf20 Then
+     effopt &= " " & textbox3.text & " "
+  Endif
+
   Return effopt & " "
 End
 
