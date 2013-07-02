@@ -72,7 +72,7 @@
       }
       { Panel1 ScrollView
         MoveScaled(1,37,48,24)
-        Background = &HD7D7D7&
+        Background = &HFFFFFF&
         Arrangement = Arrange.Vertical
         Spacing = True
         Padding = 4
@@ -147,7 +147,7 @@
       }
       Index = 1
       Text = ("Image Effects")
-      Picture = Picture["icon:/small/edit"]
+      Picture = Picture["icon:/small/wizard"]
       { Panel3 ScrollView
         MoveScaled(1,1,50,76)
         Expand = True

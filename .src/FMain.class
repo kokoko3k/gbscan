@@ -24,7 +24,7 @@ End
 
 Public Sub Form_Open()
   Me.Center
-  Wait
+  Wait 
   If Init() = 0 Then 
     Return
       Else
@@ -647,6 +647,7 @@ Public Sub scanprocess_kill()
   Dim tmp As String
   Dim i As Integer = 1
   Dim dpi As Integer
+
   If manuallystopped Then
     manuallystopped = False
     Try Message.info("Scan stopped")
@@ -1314,4 +1315,9 @@ Public Sub Form_Close()
   Try Kill effectfile
   Try Kill previewfile
   Try Kill scanfile
+End
+
+Public Sub Form_Show()
+  CorrectAreaAspect()
+  SlidersToCropArea()
 End
