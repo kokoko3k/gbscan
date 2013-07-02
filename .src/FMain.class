@@ -1308,13 +1308,13 @@ Public Function ParseEffects() As String
     Endif
   Endif
 
-  If checkboxf5 Then
+  If checkboxf5.value Then
      effopt &= " " & textbox1.text & " "
   Endif
-  If checkboxf19 Then
+  If checkboxf19.value Then
      effopt &= " " & textbox2.text & " "
   Endif
-  If checkboxf20 Then
+  If checkboxf20.value Then
      effopt &= " " & textbox3.text & " "
   Endif
 
