@@ -1321,3 +1321,8 @@ Public Sub Form_Show()
   CorrectAreaAspect()
   SlidersToCropArea()
 End
+
+Public Sub Form_Resize()
+  CorrectAreaAspect()
+  SlidersToCropArea()
+End
