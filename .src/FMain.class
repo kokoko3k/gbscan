@@ -23,6 +23,7 @@ Public Sub _new()
 End
 
 Public Sub Form_Open()
+Stop
   Me.Center
   Wait 
   If Init() = 0 Then 
@@ -578,7 +579,8 @@ Public Sub ButtonPreview_Click()
   PictureBox1.Picture = picture["Black.png"]
   Wait
 
-  scanprocess = Shell cmdline For Read As "scanprocess"
+  'scanprocess = Shell cmdline For Read As "scanprocess"
+  scanprocess = Shell cmdline For Input As "scanprocess"
   Debug cmdline
 
 End
@@ -589,6 +591,7 @@ Public Sub ButtonScan_Click()
   
   If Not ismultipage Then
     If ShowSaveDialog() Then Return
+
     destfile = Dialog.Path
   Endif
 
@@ -610,7 +613,8 @@ Public Sub ButtonScan_Click()
 
   cmdline = scanimage & " -p -d " & scanner & " " & gopts & scanopts & " --format tiff >" & scanfile
   'cmdline = scanimage & " -p -d " & scanner & " " & gopts & scanopts & " --format 'tiff' |convert - " & ParseEffects() & previewfile
-  scanprocess = Shell cmdline For Read As "scanprocess"
+  'scanprocess = Shell cmdline For Read As "scanprocess"
+  scanprocess = Shell cmdline For Input As "scanprocess"
   Print cmdline
   PictureBox1.Picture.Clear
   croparea.hide
@@ -719,7 +723,8 @@ Public Sub scanprocess_kill()
     BigLabel.Show
     FMain.mouse = mouse.wait
     FMain.enabled = False
-    magickprocess = Shell cmdline For Read As "magickprocess" 
+    'magickprocess = Shell cmdline For Read As "magickprocess" 
+    magickprocess = Shell cmdline For Input As "magickprocess" 
     Print cmdline
   Endif
   scanning = False
