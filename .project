@@ -1,6 +1,6 @@
 # Gambas Project File 3.0
-# Compiled with Gambas 3.5.1
-Title=GBscan
+# Compiled with Gambas 3.5.2
+Title=gbScan
 Startup=FMain
 Version=0.0.20
 Component=gb.image
@@ -8,6 +8,7 @@ Component=gb.qt4
 Component=gb.form
 Component=gb.desktop
 Component=gb.form.dialog
+Component=gb.settings
 Component=gb.image.effect
 Component=gb.image.imlib
 Component=gb.pdf
