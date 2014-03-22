@@ -38,6 +38,9 @@ Public oTextBox As TextBox
 Public oComboBox As ComboBox
 Public oSpinBox As SpinBox
 Public oLabel As Label
+Public bDebug As Boolean = False
+Public sSavePath As String
+Public sSaveExtension As String
 
 '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ' open form, init program
@@ -71,8 +74,9 @@ Public Sub Form_Close()
   SetConfigValue("GUI/WindowY", Me.Y)
   SetConfigValue("GUI/WindowHeight", Me.Height)
   SetConfigValue("GUI/WindowWidth", Me.Width)
-
   SetConfigValue("Scan/Quality", slQuality.Value)
+  SetConfigValue("Save/Path", sSavePath)
+  SetConfigValue("Save/Extension", sSaveExtension)
 
 End
 
@@ -154,6 +158,8 @@ Public Sub GetConfig()
     hSettings["GUI/WindowHeight"] = 613
     hSettings["GUI/WindowWidth"] = 999
     hSettings["Scan/Quality"] = 80
+    hSettings["Save/Path"] = sBaseDir
+    hSettings["Save/Extension"] = ".pdf"
     hSettings.Save
 
     ' re-load
@@ -165,6 +171,8 @@ Public Sub GetConfig()
     iWindowHeight = GetConfigValue("GUI/WindowHeight", 613)
     iWindowWidth = GetConfigValue("GUI/WindowWidth", 999)
     slQuality.Value = GetConfigValue("Scan/Quality", 90)
+    sSavePath = GetConfigValue("SavePath", sBaseDir)
+    sSaveExtension = GetConfigValue("Save/Extension", ".pdf")
   Endif
 
 End
@@ -348,7 +356,7 @@ Public Sub MakeLabel(sName As String)
   oLabel.AutoResize = True
   oSeparator = New Separator(vboxDefaults)
   oSeparator.Expand = False
-  
+
   oSeparator = New Separator(vboxSettings)
   oSeparator.Expand = False
   oParent = New HBox(vboxSettings)
@@ -788,22 +796,22 @@ Public Function ParseGui() As String
       Next
     Endif
   Next
-  ' 
-  ' For Each a In vboxSettings.Children
-  '   If a Is Hbox Then
-  '     For Each b In a.Children
-  '       If b Is Checkbox Then
-  '         If b.value = True Then
-  '           outstr &= "--" & b.tag
-  '           If Right(b.text, 1) <> "=" Then outstr &= " "
-  '           outstr &= "'" & b.next.text & "'" & " "
-  '         Endif
-  '       Endif
-  '     Next
-  '   Endif
-  ' Next
+
+  For Each a In vboxSettings.Children
+    If a Is Hbox Then
+      For Each b In a.Children
+        If b Is Checkbox Then
+          If b.value = True Then
+            outstr &= "--" & b.tag
+            If Right(b.text, 1) <> "=" Then outstr &= " "
+            outstr &= "'" & b.next.text & "'" & " "
+          Endif
+        Endif
+      Next
+    Endif
+  Next
   Return outstr
-Debug outstr
+  If bDebug Then Debug outstr
 
 End
 
@@ -814,7 +822,7 @@ Public Sub btnPreview_Click()
   SlidersToCropArea()
 
   bIsPreview = True
-  TextWaiting.show
+  txtWaiting.show
   ProgressBar1.hide
   btnCancel.show
   BottomBox.show
@@ -829,7 +837,8 @@ Public Sub btnPreview_Click()
   gopts &= " -y " & CInt(SliderH.maxvalue - SliderH.minvalue - 1) & " "
 
   cmdline = sScanImageCmd & " -p -d " & scanner & " " & scanopts & gopts & " --format tiff >" & sPreviewFile
-Debug cmdline
+  If bDebug Then Debug cmdline
+
   PictureBox1.Picture = picture["black.png"]
   Wait
   hScanProcess = Shell cmdline For Input As "ScanProcess"
@@ -846,7 +855,7 @@ Public Sub btnScan_Click()
   Endif
 
   bIsPreview = False
-  TextWaiting.show
+  txtWaiting.show
   ProgressBar1.hide
   btnCancel.show
   BottomBox.show
@@ -886,15 +895,14 @@ Public Function findfree(filename As String) As String
 
 End
 
-Public Function makedigits(i As Integer, digits As Integer) As String
+Public Function MakeDigits(iI As Integer, iDigits As Integer) As String
 
-  Dim out As String
+  Dim sOut As String = iI
 
-  out = i
-  While Len(out) < digits
-    out = "0" & out
+  While Len(sOut) < iDigits
+    sOut = "0" & sOut
   Wend
-  Return out
+  Return sOut
 
 End
 
@@ -905,7 +913,7 @@ Public Sub ScanProcess_Kill()
 
   If bIsManuallyStopped Then
     bIsManuallyStopped = False
-    Try Message.info("Scan stopped")
+    Try Message.info("Scanning cancelled!")
     ProgressBar1.Value = 1
     btnCancel.hide
     BottomBox.hide
@@ -923,7 +931,7 @@ Public Sub ScanProcess_Kill()
       Shell "convert " & Quote(sPreviewFile) & " " & Quote(sPreviewFile) To tmp
       Try PictureBox1.picture = picture.Load(sPreviewFile)
       If Error Then
-        message.error("Unable to load picture")
+        message.error("Unable to load picture!")
         bIsScanning = False
         Return
       Endif
@@ -947,7 +955,7 @@ Public Sub ScanProcess_Kill()
     sOutput = sDestinationFile
 
     If bIsMultiPage Then
-      BigLabel.text = "Loading page " & iPages & "..."
+      BigLabel.text = "Loading page #" & iPages & "..."
     Endif
 
     If Lower(sOutput) Like "*.pdf" Then
@@ -1034,18 +1042,19 @@ Public Sub ScanProcess_Error(stderr As String)
 
   Dim percent As String
   Dim percentfloat As Float
-Print stderr
+
   If stderr Like "*scanimage*" Then
     sLastScanError = stderr
   Else
     sLastError = stderr
   Endif
+  If bDebug Then Debug stderr
 
   If stderr Like "*%*" Then
     Try percent = Split(Split(stderr, " ", "", True)[1], "%", "", True)[0]
     Try percentfloat = CFloat(percent)
     If Not Error Then
-      TextWaiting.hide
+      txtWaiting.hide
       ProgressBar1.show
       ProgressBar1.Value = percentfloat / 105
     Endif
@@ -1471,6 +1480,7 @@ End
 Public Sub btnTryFilters_Click()
 
   Label13.text = "Preparing Undo..."
+  Wait
   hImageOriginal = picturebox1.Picture.image
   DoEffects(ByRef picturebox1.Picture)
   btnTryFilters.enabled = False
@@ -1489,12 +1499,14 @@ Public Sub DoEffects(ByRef pic As Picture)
     Shell "convert " & Quote(sScanfile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
   Endif
   Label13.text = "Transferring image..."
+  Wait
   Try pic = picture.Load(sEffectFile)
   If Error Then 
     Try message.Error("Error reloading the picture", "OK")
     btnUndo_Click()
   Endif
   Label13.text = "Done."
+  Wait
 
 End
 

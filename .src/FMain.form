@@ -13,8 +13,8 @@
       Padding = 4
       Count = 3
       Index = 0
-      Text = ("Defaults")
-      Picture = Picture["icon:/small/open"]
+      Text = ("Favorite Settings")
+      Picture = Picture["icon:/small/properties"]
       { vboxDefaults ScrollView
         MoveScaled(1,0,46,23)
         Background = Color.TextBackground
@@ -146,7 +146,8 @@
         }
       }
       Index = 1
-      Text = ("Settings")
+      Text = ("All Settings")
+      Picture = Picture["icon:/small/properties"]
       { vboxSettings ScrollView
         MoveScaled(1,0,46,23)
         Background = Color.TextBackground
@@ -172,7 +173,6 @@
           Border = Border.Plain
           { PictureBox3 PictureBox
             MoveScaled(0,0,5,5)
-            Picture = Picture["ImageMagick.gif"]
             Alignment = Align.BottomLeft
           }
           { Label12 Label
@@ -454,7 +454,7 @@
       Index = 0
     }
     { VBox2 VBox
-      MoveScaled(50,3,61,88)
+      MoveScaled(50,2,61,88)
       Expand = True
       Spacing = True
       Padding = 3
@@ -464,7 +464,13 @@
         Expand = True
         Arrangement = Arrange.Vertical
         { PictureBox1 PictureBox
-          MoveScaled(10,13,16,16)
+          MoveScaled(6,15,37,35)
+          Background = Color.LightForeground
+          Tracking = True
+          Expand = True
+          Ignore = True
+          Picture = Picture["black.png"]
+          Stretch = True
         }
         { CropArea Panel
           MoveScaled(6,27,37,25)
@@ -532,18 +538,18 @@
         Visible = False
         Spacing = True
         Padding = 4
-        { TextWaiting TextLabel
-          MoveScaled(0,1,6,3)
+        { txtWaiting TextLabel
+          MoveScaled(0,1,20,3)
           Visible = False
           Expand = True
           Text = ("Waiting for scanner")
         }
         { ProgressBar1 ProgressBar
-          MoveScaled(7,0,9,3)
+          MoveScaled(21,0,9,3)
           Expand = True
         }
         { btnCancel Button
-          MoveScaled(18,0,13,4)
+          MoveScaled(34,0,13,4)
           Visible = False
           AutoResize = True
           Text = ("Stop")
