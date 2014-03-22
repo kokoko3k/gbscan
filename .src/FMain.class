@@ -97,7 +97,7 @@ Public Sub SaveEnabledSettings()
           Else
             sOptionName = Left(oControl.Tag, Len(oControl.Tag) - 1)
           Endif
-          ' DEBUG sOptionName & " : value = " & oControl.Next.Text
+          If bDebug Then Debug sOptionName & " : value = " & oControl.Next.Text
           If oControl.Value = True Then
             Try sValue = oControl.Next.Text
             If Not Error Then SetConfigValue("Options/" & sOptionName, sValue)
@@ -116,7 +116,7 @@ Public Sub SaveEnabledSettings()
           Else
             sOptionName = Left(oControl.Tag, Len(oControl.Tag) - 1)
           Endif
-          ' DEBUG sOptionName & " : value = " & oControl.Next.Text
+          If bDebug Then Debug sOptionName & " : value = " & oControl.Next.Text
           If oControl.Value = True Then
             Try sValue = oControl.Next.Text
             If Not Error Then SetConfigValue("Options/" & sOptionName, sValue)
@@ -855,31 +855,31 @@ Public Sub btnScan_Click()
   Endif
 
   bIsPreview = False
-  txtWaiting.show
-  ProgressBar1.hide
-  btnCancel.show
-  BottomBox.show
-  croparea.hide
+  txtWaiting.Show
+  ProgressBar1.Hide
+  btnCancel.Show
+  BottomBox.Show
+  croparea.Hide
   bIsScanning = True
 
   ProgressBar1.Value = 0
   scanner = "'" & (Trim(Split(ComboScanner.text, "|", "", True)[1])) & "'"
   scanopts = ParseGui()
-  gopts = " -l " & SliderX.value 
-  gopts &= " -t " & SliderY.value 
+  gopts = " -l " & SliderX.value
+  gopts &= " -t " & SliderY.value
   gopts &= " -x " & CInt(SliderW.value - 1)
   gopts &= " -y " & CInt(SliderH.value - 1) & " "
 
   cmdline = sScanImageCmd & " -p -d " & scanner & " " & gopts & scanopts & " --format tiff >" & sScanfile
   hScanProcess = Shell cmdline For Input As "ScanProcess"
   PictureBox1.Picture.Clear
-  croparea.hide
+  croparea.Hide
   btnTryFilters.enabled = True
   btnSaveNow.Enabled = True
 
 End
 
-Public Function findfree(filename As String) As String
+Public Function FindFree(filename As String) As String
 
   ' gbscan.pdf -> gbscan.001.pdf
   Dim basename As String = File.Dir(filename) & File.BaseName(filename)
@@ -906,6 +906,26 @@ Public Function MakeDigits(iI As Integer, iDigits As Integer) As String
 
 End
 
+Public Sub ScanProcess_Read()
+
+  Dim sProgress, sPercent As String
+  Dim fPercent As Float
+
+  Read #Last, sProgress, -256
+  If bDebug Then Debug sProgress;
+
+  If sProgress Like "*%*" Then
+    Try sPercent = Split(Split(sProgress, " ", "", True)[1], "%", "", True)[0]
+    Try fPercent = CFloat(sPercent)
+    If Not Error Then
+      txtWaiting.Hide
+      ProgressBar1.Show
+      ProgressBar1.Value = fPercent / 100
+    Endif
+  Endif
+
+End
+
 Public Sub ScanProcess_Kill()
 
   Dim tmp, cmdline, outfmt As String
@@ -913,7 +933,7 @@ Public Sub ScanProcess_Kill()
 
   If bIsManuallyStopped Then
     bIsManuallyStopped = False
-    Try Message.info("Scanning cancelled!")
+    Try Message.info("Scanning is cancelled!")
     ProgressBar1.Value = 1
     btnCancel.hide
     BottomBox.hide
@@ -955,16 +975,16 @@ Public Sub ScanProcess_Kill()
     sOutput = sDestinationFile
 
     If bIsMultiPage Then
-      BigLabel.text = "Loading page #" & iPages & "..."
+      BigLabel.text = ("Loading page #") & iPages & "..."
     Endif
 
     If Lower(sOutput) Like "*.pdf" Then
       Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
-      If Error Then 
+      If Error Then
          Shell "convert " & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
          Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
          If Error Then
-            message.error("Unable to load picture")
+            message.error("Unable to load picture!")
             bIsScanning = False
             Return
          Endif
@@ -976,12 +996,12 @@ Public Sub ScanProcess_Kill()
 
     BigLabel.y = 0
     BigLabel.x = (VBox2.w Div 2) - (BigLabel.w Div 2)
-    BigLabel.text = "Please wait while applying effects..."
+    BigLabel.text = ("Please wait while applying effects...")
     BigLabel.Show
     FMain.mouse = mouse.wait
     FMain.enabled = False
     hMagickProcess = Shell cmdline For Input As "MagickProcess"
-    Print cmdline
+    If bDebug Then Debug cmdline
   Endif
   bIsScanning = False
 
@@ -1040,25 +1060,12 @@ End
 
 Public Sub ScanProcess_Error(stderr As String)
 
-  Dim percent As String
-  Dim percentfloat As Float
-
   If stderr Like "*scanimage*" Then
     sLastScanError = stderr
   Else
     sLastError = stderr
   Endif
   If bDebug Then Debug stderr
-
-  If stderr Like "*%*" Then
-    Try percent = Split(Split(stderr, " ", "", True)[1], "%", "", True)[0]
-    Try percentfloat = CFloat(percent)
-    If Not Error Then
-      txtWaiting.hide
-      ProgressBar1.show
-      ProgressBar1.Value = percentfloat / 105
-    Endif
-  Endif
 
 End
 
