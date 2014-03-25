@@ -38,9 +38,8 @@ Public oTextBox As TextBox
 Public oComboBox As ComboBox
 Public oSpinBox As SpinBox
 Public oLabel As Label
-Public bDebug As Boolean = False
+Public bDebug As Boolean
 Public sSavePath As String
-Public sSaveExtension As String
 
 '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ' open form, init program
@@ -76,7 +75,7 @@ Public Sub Form_Close()
   SetConfigValue("GUI/WindowWidth", Me.Width)
   SetConfigValue("Scan/Quality", slQuality.Value)
   SetConfigValue("Save/Path", sSavePath)
-  SetConfigValue("Save/Extension", sSaveExtension)
+  SetConfigValue("Program/Debug", bDebug)
 
 End
 
@@ -97,7 +96,7 @@ Public Sub SaveEnabledSettings()
           Else
             sOptionName = Left(oControl.Tag, Len(oControl.Tag) - 1)
           Endif
-          If bDebug Then Debug sOptionName & " : value = " & oControl.Next.Text
+          ' sOptionName & " : value = " & oControl.Next.Text
           If oControl.Value = True Then
             Try sValue = oControl.Next.Text
             If Not Error Then SetConfigValue("Options/" & sOptionName, sValue)
@@ -116,7 +115,7 @@ Public Sub SaveEnabledSettings()
           Else
             sOptionName = Left(oControl.Tag, Len(oControl.Tag) - 1)
           Endif
-          If bDebug Then Debug sOptionName & " : value = " & oControl.Next.Text
+          ' sOptionName & " : value = " & oControl.Next.Text
           If oControl.Value = True Then
             Try sValue = oControl.Next.Text
             If Not Error Then SetConfigValue("Options/" & sOptionName, sValue)
@@ -159,7 +158,7 @@ Public Sub GetConfig()
     hSettings["GUI/WindowWidth"] = 999
     hSettings["Scan/Quality"] = 80
     hSettings["Save/Path"] = sBaseDir
-    hSettings["Save/Extension"] = ".pdf"
+    hSettings["Program/Debug"] = False
     hSettings.Save
 
     ' re-load
@@ -171,8 +170,8 @@ Public Sub GetConfig()
     iWindowHeight = GetConfigValue("GUI/WindowHeight", 613)
     iWindowWidth = GetConfigValue("GUI/WindowWidth", 999)
     slQuality.Value = GetConfigValue("Scan/Quality", 90)
-    sSavePath = GetConfigValue("SavePath", sBaseDir)
-    sSaveExtension = GetConfigValue("Save/Extension", ".pdf")
+    sSavePath = GetConfigValue("Save/Path", sBaseDir)
+    bDebug = GetConfigValue("Program/Debug", False)
   Endif
 
 End
@@ -1021,10 +1020,12 @@ Public Function ShowSaveDialog(Optional bMulti As Boolean = False) As Boolean
   If bMulti Then
     Dialog.Filter = ["*.pdf", "PDF - Portable Document Format", "*.tiff", "TIFF - Tagged Image File Format"]
   Else
-    Dialog.Filter = ["*.jpg", "JPEG", "*.png", "PNG", "*.tiff", "TIFF", "*.bmp", "BMP", "*.pdf", "PDF"]
+    Dialog.Filter = ["*.pdf", "PDF", "*.png", "PNG", "*.jpg", "JPEG", "*.tiff", "TIFF", "*.bmp", "BMP"]
   Endif
+
+  Dialog.Title = "Choose a directory and specify name to save as"
   Dialog.AutoExt = True
-  ' Dialog.path = User.home
+  Dialog.Path = sSavePath & "/"
   Return Dialog.SaveFile()
 
 End
@@ -1036,6 +1037,9 @@ Public Sub btnSaveNow_Click()
   If ShowSaveDialog() Then Return
   Dialog.AutoExt = True
   sOutputFile = Dialog.Path
+  sSavePath = File.Dir(sOutputFile)
+  If bDebug Then Debug sSavePath
+
   If Exist(sEffectFile, True) Then
     whatyousee = sEffectFile
   Else
@@ -1047,13 +1051,13 @@ Public Sub btnSaveNow_Click()
     cmdline = "convert " & " " & Quote(whatyousee) & " -quality " & slQuality.value & " " & Quote(sOutputFile)
   Endif
 
-  Me.mouse = Mouse.wait
+  Me.Mouse = Mouse.Wait
   ' redirect stderr to stdout to catch errors
   cmdline &= " 2>&1"
   Shell cmdline To stderr
-  Me.mouse = Mouse.Normal
+  Me.Mouse = Mouse.Normal
   If stderr <> "" Then
-    Try message.Error(stderr)
+    Try Message.Error(stderr)
   Endif
 
 End
@@ -1125,12 +1129,12 @@ Public Sub CorrectAreaAspect()
 
 End
 
-Public Sub ForceAspect(ByRef pbox As Picturebox, aspect As Float)
+Public Sub ForceAspect(ByRef pBox As Picturebox, aspect As Float)
 
   Dim w, h, dw, dh As Integer
 
-  w = pbox.W
-  h = pbox.H
+  w = pBox.W
+  h = pBox.H
 
   If w > h Then ' enlarge h
     dw = w
@@ -1139,7 +1143,7 @@ Public Sub ForceAspect(ByRef pbox As Picturebox, aspect As Float)
     dw = CInt(h * aspect)
     dh = h
   Endif
-  pbox.Resize(dw, dh)
+  pBox.Resize(dw, dh)
 
 End
 
@@ -1150,30 +1154,30 @@ Public Sub HSplit1_resize()
 
 End
 
-Public Sub checkborder()
+Public Sub CheckBorder()
 
-  If (sliderx.value + sliderw.value) > sliderw.MaxValue Then sliderw.value -= 1
-  If (slidery.value + sliderh.value) > sliderh.MaxValue Then sliderh.value -= 1
+  If (sliderX.value + sliderW.value) > sliderW.MaxValue Then sliderW.value -= 1
+  If (sliderY.value + sliderH.value) > sliderH.MaxValue Then sliderH.value -= 1
 
 End
 
 Public Sub HandleTopLeft_MouseDrag()
 
-  Dim kW, Kh As Float
-  Dim mousex, mousey, prevX, prevY As Integer
+  Dim kWidth, kHeight As Float
+  Dim mouseX, mouseY, prevX, prevY As Integer
 
-  mousex = Mouse.screenx - PictureBox1.screenx
-  mousey = Mouse.screeny - PictureBox1.screeny
-  prevX = sliderx.value
+  mouseX = Mouse.screenX - PictureBox1.screenX
+  mouseY = Mouse.screenY - PictureBox1.screenY
+  prevX = sliderX.value
   prevY = sliderY.value
 
-  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w
-  kH = (slidery.MaxValue - slidery.MinValue) / picturebox1.h
+  kWidth = (sliderX.MaxValue - sliderX.MinValue) / pictureBox1.Width
+  kHeight = (sliderY.MaxValue - sliderY.MinValue) / pictureBox1.Height
 
-  sliderx.value = Mousex * kW
-  slidery.value = Mousey * kH
-  SliderW.value += (prevx - sliderx.value)
-  SliderH.value += (prevY - sliderY.value)
+  sliderX.value = MouseX * kWidth
+  sliderY.value = MouseY * kHeight
+  sliderW.value += (prevX - sliderX.Value)
+  sliderH.value += (prevY - sliderY.Value)
 
 End
 
@@ -1404,29 +1408,31 @@ End
 
 Public Sub btnScanMulti_Click()
 
-  Dim outfmt, multipagedestfile As String
-  Dim TiffOrPdf As Boolean = False
+  Dim sOutputFmt, sMultiPageDestFile As String
+  Dim bTiffOrPdf As Boolean
 
+  ' ask to select multipage file format
   Repeat
     If ShowSaveDialog(True) Then Return
-    multipagedestfile = Dialog.path
-    outfmt = Lower(File.Ext(multipagedestfile))
-    TiffOrPDF = ((outfmt = "pdf") Or (outfmt = "tiff"))
-    If Not TiffOrPdf Then Try message.Error("Please select PDF or TIFF!")
-  Until TiffOrPDF
+
+    sMultiPageDestFile = Dialog.path
+    sOutputFmt = Lower(File.Ext(sMultiPageDestFile))
+    bTiffOrPDF = ((sOutputFmt = "pdf") Or (sOutputFmt = "tiff"))
+    If Not bTiffOrPdf Then Try message.Error("Please select PDF or TIFF format!")
+  Until bTiffOrPDF
 
   iPages = 0
   bIsMultiPage = True
-  HBox2.enabled = False
+  HBox2.Enabled = False
   TabStrip1.Enabled = False
   Shell "rm " & "/tmp/gbscan.multipage.* -v"
-  FMain.mouse = mouse.wait
-  While message.Question(("You're creating a new multipage document named:\n " & multipagedestfile & "\n\nPlease, place the next page and hit " & ("Finish") & " " & "to terminate.\n\n" & iPages & " pages scanned so far.\n"), ("Scan"), ("Finish")) = 1
+  FMain.Mouse = Mouse.Wait
+  While Message.Question(("You are creating a new multipage document named:\n " & sMultiPageDestFile & "\n\nPlease place the next page and hit " & ("Scan") & ",\nClick " & ("Finish") & " " & "to save all scanned pages.\n\n" & iPages & " page" & IIf(iPages = 1, " ", "s") & " scanned so far.\n"), ("Scan"), ("Finish")) = 1
     Inc iPages
     sDestinationFile = "/tmp/gbscan.multipage." & makedigits(iPages, 5) & ".tiff"
-    BigLabel.y = 0
-    BigLabel.x = (VBox2.w Div 2) - (BigLabel.w Div 2)
-    BigLabel.text = "Scanning page " & iPages & "..."
+    BigLabel.Y = 0
+    BigLabel.X = (VBox2.w Div 2) - (BigLabel.w Div 2)
+    BigLabel.Text = "Scanning page " & iPages
     BigLabel.Show
     Wait 0.2
     btnScan_Click()
@@ -1435,29 +1441,29 @@ Public Sub btnScanMulti_Click()
     Wait
 
     While bIsScanning
-      BigLabel.y = 0
-      BigLabel.x = (VBox2.w Div 2) - (BigLabel.w Div 2)
-      BigLabel.text = "Scanning page " & iPages & "..."
+      BigLabel.Y = 0
+      BigLabel.X = (VBox2.w Div 2) - (BigLabel.w Div 2)
+      BigLabel.Text = "Scanning page " & iPages
       BigLabel.Show
       Wait 0.2
     Wend
   Wend
-  FMain.mouse = mouse.default
+  FMain.Mouse = Mouse.Default
   If iPages > 0 Then
-    joinpages("/tmp/gbscan.multipage.*", multipagedestfile)
-    Select Case message.Question(("Multipage document saved as:\n" & multipagedestfile), ("Open Folder"), ("Open File"), "OK")
+    JoinPages("/tmp/gbscan.multipage.*", sMultiPageDestFile)
+    Select Case Message.Question(("Multipage document saved as:\n" & sMultiPageDestFile), ("Open Folder"), ("Open File"), "OK")
       Case 1
-        Desktop.Open(Shell(File.Dir(multipagedestfile)))
+        Desktop.Open(File.Dir(sMultiPageDestFile))
       Case 2
-        Desktop.open(Shell(multipagedestfile))
+        Desktop.open(sMultiPageDestFile)
     End Select
   Endif
 
   bIsMultiPage = False
-  HBox2.enabled = True
+  HBox2.Enabled = True
   TabStrip1.Enabled = True
-  BigLabel.hide
-  Shell "rm " & "/tmp/gbscan.multipage.* -v"
+  BigLabel.Hide
+  Try Shell "rm " & "/tmp/gbscan.multipage.* -v"
 
 End
 
@@ -1541,9 +1547,9 @@ Public Sub StopScan()
 
 End
 
-Public Function Squote(S As String) As String
+Public Function sQuote(sText As String) As String
 
-  Return "'" & S & "'"
+  Return "'" & sText & "'"
 
 End
 
@@ -1555,10 +1561,10 @@ Public Function ParseEffects() As String
     effopt &= " -despeckle "
   Endif
   If deskew.value Then
-    effopt &= " -deskew " & Squote(sliderq2.value)
+    effopt &= " -deskew " & sQuote(sliderq2.value)
   Endif
   If rotate.value Then
-    effopt &= " -rotate " & Squote(combobox2.text)
+    effopt &= " -rotate " & sQuote(combobox2.text)
   Endif
   If autogamma.value Then
     effopt &= " -auto-gamma "
@@ -1567,22 +1573,22 @@ Public Function ParseEffects() As String
     effopt &= " -auto-level "
   Endif
   If blackthreshold.value Then
-    effopt &= " -black-threshold " & Squote(sliderq4.value) & "%"
+    effopt &= " -black-threshold " & sQuote(sliderq4.value) & "%"
   Endif
   If whitethreshold.value Then
-    effopt &= " -white-threshold " & Squote(sliderq5.value) & "%"
+    effopt &= " -white-threshold " & sQuote(sliderq5.value) & "%"
   Endif
   If contraststretch.value Then
-    effopt &= " -contrast-stretch " & squote(sliderq6.value) & "%x" & squote(sliderq6.value) & "%"
+    effopt &= " -contrast-stretch " & sQuote(sliderq6.value) & "%x" & sQuote(sliderq6.value) & "%"
   Endif
   If posterize.value Then
-    effopt &= " -posterize " & Squote(sliderq7.value)
+    effopt &= " -posterize " & sQuote(sliderq7.value)
   Endif
   If blursharpen.value Then
     If sliderq3.value < 0 Then
-      effopt &= " -blur " & Squote(Abs(sliderq3.value))
+      effopt &= " -blur " & sQuote(Abs(sliderq3.value))
     Else
-      effopt &= " -sharpen " & Squote(Abs(sliderq3.value))
+      effopt &= " -sharpen " & sQuote(Abs(sliderq3.value))
     Endif
   Endif
 
