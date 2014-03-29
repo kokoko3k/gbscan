@@ -1,8 +1,8 @@
 # Gambas Project File 3.0
-# Compiled with Gambas 3.5.90
+# Compiled with Gambas 3.5.2
 Title=gbScan
 Startup=FMain
-Version=0.0.23
+Version=0.0.27
 Component=gb.image
 Component=gb.qt4
 Component=gb.form
@@ -15,5 +15,4 @@ Component=gb.pdf
 Component=gb.qt4.ext
 TabSize=2
 KeepDebugInfo=0
-ExecPath=/home/ron/Desktop/gbScan.gambas
 Packager=1

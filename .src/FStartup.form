@@ -16,17 +16,18 @@
       Alignment = Align.Center
     }
     { TextLabel6 TextLabel
-      MoveScaled(2,1,25,5)
-      Font = Font["ClearlyU PUA,+6"]
+      MoveScaled(3,2,25,8)
+      Font = Font["Londrina Solid,+10"]
       Text = ("gbScan")
     }
     { lblVersion Label
-      MoveScaled(2,5,22,3)
+      MoveScaled(17,2,7,3)
       Alignment = Align.Center
     }
     { PictureBox1 PictureBox
-      MoveScaled(30,2,14,13)
-      Picture = Picture["scanner.jpg"]
+      MoveScaled(30,2,13,12)
+      Picture = Picture["gbscan.png"]
+      Stretch = True
       Alignment = Align.Center
     }
   }
