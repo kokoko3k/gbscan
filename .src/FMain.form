@@ -11,17 +11,17 @@
       Expand = True
       Arrangement = Arrange.Vertical
       Padding = 4
-      Count = 2
+      Count = 3
       Index = 0
-      Text = ("Scan")
-      Picture = Picture["icon:/small/open"]
-      { Vbox1 ScrollView
+      Text = ("Favorite Settings")
+      Picture = Picture["icon:/small/bookmark"]
+      { vboxDefaults ScrollView
         MoveScaled(1,0,46,23)
         Background = Color.TextBackground
         Expand = True
         Arrangement = Arrange.Vertical
         Padding = 4
-        { HBox1 VBox
+        { hboxScanner VBox
           MoveScaled(0,0,53,7)
           Padding = 2
           { label1 TextLabel
@@ -42,20 +42,20 @@
         MoveScaled(0,23,43,2)
       }
       { HBox12 HBox
-        MoveScaled(1,26,48,3.7143)
+        MoveScaled(1,26,48,3.75)
         Spacing = True
         Padding = 4
         { Label9 Label
           MoveScaled(1,1,13,3)
           Text = ("Quality:")
         }
-        { SliderQ Slider
+        { slQuality Slider
           MoveScaled(17,0,18,4)
           Expand = True
           MinValue = 1
           Value = 80
         }
-        { SpinBoxQ SpinBox
+        { sbQuality SpinBox
           MoveScaled(37,0,8,3)
           MinValue = 1
           Value = 80
@@ -72,7 +72,7 @@
       }
       { Panel1 ScrollView
         MoveScaled(1,37,48,24)
-        Background = &HFFFFFF&
+        Background = Color.TextBackground
         Arrangement = Arrange.Vertical
         Spacing = True
         Padding = 4
@@ -83,12 +83,12 @@
             MoveScaled(1,0,9,3)
             Text = ("Start X")
           }
-          { SliderX Slider SlidersG
+          { SliderX Slider SlidersArea
             Name = "SliderX"
             MoveScaled(11,0,24,4)
             Expand = True
           }
-          { SpinBoxX SpinBox SpinBoxG
+          { SpinBoxX SpinBox SpinBoxesArea
             Name = "SpinBoxX"
             MoveScaled(36,0,8,3)
           }
@@ -100,12 +100,12 @@
             MoveScaled(1,0,9,3)
             Text = ("Start Y")
           }
-          { SliderY Slider SlidersG
+          { SliderY Slider SlidersArea
             Name = "SliderY"
             MoveScaled(11,0,24,4)
             Expand = True
           }
-          { SpinBoxY SpinBox SpinBoxG
+          { SpinBoxY SpinBox SpinBoxesArea
             Name = "SpinBoxY"
             MoveScaled(36,0,8,3)
           }
@@ -117,12 +117,12 @@
             MoveScaled(1,0,9,3)
             Text = ("Width")
           }
-          { SliderW Slider SlidersG
+          { SliderW Slider SlidersArea
             Name = "SliderW"
             MoveScaled(11,0,24,4)
             Expand = True
           }
-          { SpinBoxW SpinBox SpinBoxG
+          { SpinBoxW SpinBox SpinBoxesArea
             Name = "SpinBoxW"
             MoveScaled(36,0,8,3)
           }
@@ -134,22 +134,33 @@
             MoveScaled(1,1,9,3)
             Text = ("Height")
           }
-          { SliderH Slider SlidersG
+          { SliderH Slider SlidersArea
             Name = "SliderH"
             MoveScaled(11,0,24,4)
             Expand = True
           }
-          { SpinBoxH SpinBox SpinBoxG
+          { SpinBoxH SpinBox SpinBoxesArea
             Name = "SpinBoxH"
             MoveScaled(36,0,8,3)
           }
         }
       }
       Index = 1
+      Text = ("All Settings")
+      Picture = Picture["icon:/small/properties"]
+      { vboxSettings ScrollView
+        MoveScaled(1,0,46,23)
+        Background = Color.TextBackground
+        Expand = True
+        Arrangement = Arrange.Vertical
+        Padding = 4
+      }
+      Index = 2
       Text = ("Image Effects")
       Picture = Picture["icon:/small/wizard"]
       { Panel3 ScrollView
         MoveScaled(1,1,50,76)
+        Background = Color.TextBackground
         Expand = True
         Arrangement = Arrange.Vertical
         Spacing = True
@@ -162,7 +173,6 @@
           Border = Border.Plain
           { PictureBox3 PictureBox
             MoveScaled(0,0,5,5)
-            Picture = Picture["ImageMagick.gif"]
             Alignment = Align.BottomLeft
           }
           { Label12 Label
@@ -173,10 +183,10 @@
           }
         }
         { HBox24 HBox
-          MoveScaled(1,9,48,3.7143)
+          MoveScaled(1,9,48,3.75)
           Spacing = True
           Padding = 4
-          { despeckle CheckBox CheckboxesF
+          { despeckle CheckBox CheckboxesEffects
             Name = "despeckle"
             MoveScaled(0,0,18,4)
             ToolTip = ("reduce the speckles within an image.")
@@ -185,33 +195,33 @@
           }
         }
         { HBox19 HBox
-          MoveScaled(1,13,48,3.7143)
+          MoveScaled(1,13,48,3.75)
           ToolTip = ("straighten an image. A threshold of 40% works for most images.")
           Spacing = True
           Padding = 4
-          { deskew CheckBox CheckboxesF
+          { deskew CheckBox CheckboxesEffects
             Name = "deskew"
             MoveScaled(0,0,19,4)
             Text = ("Deskew (%)")
           }
-          { SliderQ2 Slider SlidersF
+          { SliderQ2 Slider SlidersEffects
             Name = "SliderQ2"
             MoveScaled(16,0,18,4)
             Expand = True
             Value = 40
           }
-          { SpinBoxQ2 SpinBox SpinBoxesF
+          { SpinBoxQ2 SpinBox SpinBoxesEffects
             Name = "SpinBoxQ2"
             MoveScaled(37,0,8,3)
             Value = 40
           }
         }
         { HBox15 HBox
-          MoveScaled(1,17,48,3.7143)
+          MoveScaled(1,17,48,3.75)
           ToolTip = ("Apply Paeth image rotation (using shear operations) to the image.")
           Spacing = True
           Padding = 4
-          { rotate CheckBox CheckboxesF
+          { rotate CheckBox CheckboxesEffects
             Name = "rotate"
             MoveScaled(0,0,19,4)
             Text = ("Rotate")
@@ -226,11 +236,11 @@
           MoveScaled(11,22,31,1)
         }
         { HBox16 HBox
-          MoveScaled(1,25,48,3.7143)
+          MoveScaled(1,25,48,3.75)
           ToolTip = ("Automagically adjust gamma level of image.")
           Spacing = True
           Padding = 4
-          { autogamma CheckBox CheckboxesF
+          { autogamma CheckBox CheckboxesEffects
             Name = "autogamma"
             MoveScaled(0,0,19,4)
             AutoResize = True
@@ -238,11 +248,11 @@
           }
         }
         { HBox22 HBox
-          MoveScaled(1,29,48,3.7143)
+          MoveScaled(1,29,48,3.75)
           ToolTip = ("Automagically adjust color levels of image.")
           Spacing = True
           Padding = 4
-          { autolevel CheckBox CheckboxesF
+          { autolevel CheckBox CheckboxesEffects
             Name = "autolevel"
             MoveScaled(0,0,19,4)
             AutoResize = True
@@ -250,67 +260,67 @@
           }
         }
         { HBox17 HBox
-          MoveScaled(1,33,48,3.7143)
+          MoveScaled(1,33,48,3.75)
           ToolTip = ("Force to black all pixels below the threshold while leaving all pixels at or above the threshold unchanged.")
           Spacing = True
           Padding = 4
-          { blackthreshold CheckBox CheckboxesF
+          { blackthreshold CheckBox CheckboxesEffects
             Name = "blackthreshold"
             MoveScaled(0,0,19,4)
             Text = ("Black-Threshold")
           }
-          { SliderQ4 Slider SlidersF
+          { SliderQ4 Slider SlidersEffects
             Name = "SliderQ4"
             MoveScaled(21,0,18,4)
             Expand = True
             Value = 10
           }
-          { SpinBoxQ4 SpinBox SpinBoxesF
+          { SpinBoxQ4 SpinBox SpinBoxesEffects
             Name = "SpinBoxQ4"
             MoveScaled(39,0,8,3)
             Value = 10
           }
         }
         { HBox18 HBox
-          MoveScaled(1,37,48,3.7143)
+          MoveScaled(1,37,48,3.75)
           ToolTip = ("Force all pixels above the threshold into Black")
           Spacing = True
           Padding = 4
-          { whitethreshold CheckBox CheckboxesF
+          { whitethreshold CheckBox CheckboxesEffects
             Name = "whitethreshold"
             MoveScaled(0,0,19,4)
             Text = ("White-Threshold")
           }
-          { SliderQ5 Slider SlidersF
+          { SliderQ5 Slider SlidersEffects
             Name = "SliderQ5"
             MoveScaled(21,0,18,4)
             Expand = True
             Value = 90
           }
-          { SpinBoxQ5 SpinBox SpinBoxesF
+          { SpinBoxQ5 SpinBox SpinBoxesEffects
             Name = "SpinBoxQ5"
             MoveScaled(39,0,8,3)
             Value = 90
           }
         }
         { HBox25 HBox
-          MoveScaled(1,42,48,3.7143)
+          MoveScaled(1,42,48,3.75)
           ToolTip = ("Increase the contrast in an image by stretching the range of intensity values.")
           Spacing = True
           Padding = 4
-          { contraststretch CheckBox CheckboxesF
+          { contraststretch CheckBox CheckboxesEffects
             Name = "contraststretch"
             MoveScaled(0,0,19,4)
             Text = ("Contrast Stretch")
           }
-          { SliderQ6 Slider SlidersF
+          { SliderQ6 Slider SlidersEffects
             Name = "SliderQ6"
             MoveScaled(21,0,18,4)
             Expand = True
             MaxValue = 1000
             Value = 90
           }
-          { SpinBoxQ6 SpinBox SpinBoxesF
+          { SpinBoxQ6 SpinBox SpinBoxesEffects
             Name = "SpinBoxQ6"
             MoveScaled(39,0,8,3)
             MaxValue = 1000
@@ -318,16 +328,16 @@
           }
         }
         { HBox21 HBox
-          MoveScaled(1,47,48,3.7143)
+          MoveScaled(1,47,48,3.75)
           ToolTip = ("\treduce the image to a limited number of color levels")
           Spacing = True
           Padding = 4
-          { posterize CheckBox CheckboxesF
+          { posterize CheckBox CheckboxesEffects
             Name = "posterize"
             MoveScaled(0,0,19,4)
             Text = ("Posterize")
           }
-          { SliderQ7 Slider SlidersF
+          { SliderQ7 Slider SlidersEffects
             Name = "SliderQ7"
             MoveScaled(21,0,18,4)
             Expand = True
@@ -335,7 +345,7 @@
             MaxValue = 256
             Value = 16
           }
-          { SpinBoxQ7 SpinBox SpinBoxesF
+          { SpinBoxQ7 SpinBox SpinBoxesEffects
             Name = "SpinBoxQ7"
             MoveScaled(40,0,8,3)
             MinValue = 2
@@ -347,16 +357,16 @@
           MoveScaled(9,51,35,1)
         }
         { HBox23 HBox
-          MoveScaled(1,53,48,3.7143)
+          MoveScaled(1,53,48,3.75)
           ToolTip = ("<0 = reduce image noise and reduce detail levels.\n>0 = increase detail levels and image noise")
           Spacing = True
           Padding = 4
-          { blursharpen CheckBox CheckboxesF
+          { blursharpen CheckBox CheckboxesEffects
             Name = "blursharpen"
             MoveScaled(0,0,19,4)
             Text = ("Blur/Sharpen")
           }
-          { SliderQ3 Slider SlidersF
+          { SliderQ3 Slider SlidersEffects
             Name = "SliderQ3"
             MoveScaled(21,0,18,4)
             Expand = True
@@ -364,7 +374,7 @@
             MaxValue = 20
             Value = 4
           }
-          { SpinBoxQ3 SpinBox SpinBoxesF
+          { SpinBoxQ3 SpinBox SpinBoxesEffects
             Name = "SpinBoxQ3"
             MoveScaled(39,0,8,3)
             MinValue = -20
@@ -376,10 +386,10 @@
           MoveScaled(4,57,43,1)
         }
         { HBox20 HBox
-          MoveScaled(1,59,48,3.4286)
+          MoveScaled(1,59,48,3.375)
           Spacing = True
           Padding = 4
-          { CheckBoxF5 CheckBox CheckboxesF
+          { CheckBoxF5 CheckBox CheckboxesEffects
             Name = "CheckBoxF5"
             MoveScaled(0,0,19,4)
             Text = ("Custom 1:")
@@ -390,10 +400,10 @@
           }
         }
         { HBox40 HBox
-          MoveScaled(1,64,48,3.4286)
+          MoveScaled(1,64,48,3.375)
           Spacing = True
           Padding = 4
-          { CheckBoxF19 CheckBox CheckboxesF
+          { CheckBoxF19 CheckBox CheckboxesEffects
             Name = "CheckBoxF19"
             MoveScaled(0,0,19,4)
             Text = ("Custom 2:")
@@ -404,10 +414,10 @@
           }
         }
         { HBox41 HBox
-          MoveScaled(1,68,48,3.4286)
+          MoveScaled(1,68,48,3.375)
           Spacing = True
           Padding = 4
-          { CheckBoxF20 CheckBox CheckboxesF
+          { CheckBoxF20 CheckBox CheckboxesEffects
             Name = "CheckBoxF20"
             MoveScaled(0,0,19,4)
             Text = ("Custom 3:")
@@ -421,14 +431,14 @@
       { HBox39 HBox
         MoveScaled(2,78,45,5)
         Spacing = True
-        { ButtonPreview2 Button
+        { btnTryFilters Button
           MoveScaled(0,0,14,4)
           Enabled = False
           AutoResize = True
           Text = ("Try filters")
           Picture = Picture["icon:/medium/wizard"]
         }
-        { ButtonPreview3 Button
+        { btnUndo Button
           MoveScaled(14,0,14,4)
           Enabled = False
           AutoResize = True
@@ -444,7 +454,7 @@
       Index = 0
     }
     { VBox2 VBox
-      MoveScaled(50,3,61,88)
+      MoveScaled(50,2,61,88)
       Expand = True
       Spacing = True
       Padding = 3
@@ -454,14 +464,13 @@
         Expand = True
         Arrangement = Arrange.Vertical
         { PictureBox1 PictureBox
-          MoveScaled(6,17,37,35)
+          MoveScaled(6,15,37,35)
           Background = Color.LightForeground
           Tracking = True
           Expand = True
           Ignore = True
-          Picture = Picture["icon:/128/wizard"]
+          Picture = Picture["black.png"]
           Stretch = True
-          Border = Border.Plain
         }
         { CropArea Panel
           MoveScaled(6,27,37,25)
@@ -529,18 +538,20 @@
         Visible = False
         Spacing = True
         Padding = 4
-        { TextWaiting TextLabel
-          MoveScaled(0,1,6,3)
+        { txtWaiting TextLabel
+          MoveScaled(-4,1,28,3)
           Visible = False
           Expand = True
+          AutoResize = True
           Text = ("Waiting for scanner")
+          Alignment = Align.Center
         }
         { ProgressBar1 ProgressBar
-          MoveScaled(7,0,9,3)
+          MoveScaled(21,0,9,3)
           Expand = True
         }
-        { ButtonCancel Button
-          MoveScaled(18,0,13,4)
+        { btnCancel Button
+          MoveScaled(34,0,13,4)
           Visible = False
           AutoResize = True
           Text = ("Stop")
@@ -555,26 +566,26 @@
           MoveScaled(0,0,8,4)
           Expand = True
         }
-        { ButtonPreview Button
+        { btnPreview Button
           MoveScaled(0,0,11,4)
           AutoResize = True
           Text = ("Preview")
           Picture = Picture["icon:/medium/find"]
         }
-        { ButtonSaveNow Button
+        { btnSaveNow Button
           MoveScaled(11,0,14,4)
           Enabled = False
           AutoResize = True
           Text = ("Save")
           Picture = Picture["icon:/medium/save-as"]
         }
-        { ButtonScan Button
+        { btnScan Button
           MoveScaled(25,0,17,4)
           AutoResize = True
           Text = ("Scan and save")
           Picture = Picture["icon:/medium/insert-image"]
         }
-        { ButtonScan2 Button
+        { btnScanMulti Button
           MoveScaled(42,0,14,4)
           AutoResize = True
           Text = ("Multipage")

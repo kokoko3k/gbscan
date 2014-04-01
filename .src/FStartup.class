@@ -1,0 +1,60 @@
+' Gambas class file
+
+Public tStartup As Timer
+
+Public Sub _new()
+
+  tStartup = New Timer As "tStartup"
+  tStartup.Delay = 100
+  tStartup.Enabled = True
+
+End
+
+Public Sub Form_Open()
+
+  lblVersion.Text = FMain.sProgramVersion
+
+End
+
+Public Sub tStartup_Timer()
+
+  tStartup.Enabled = False
+  StartProgram()
+
+End
+
+Private Sub StartProgram()
+
+  SetProgressValue(40, ("Cleanup temp files ..."))
+  FMain.CleanUp()
+
+  SetProgressValue(60, ("Looking for scanner(s) ..."))
+
+  FMain.Init()
+  SetProgressValue(100, ("Starting program ..."))
+  Me.Close
+
+End
+
+Public Sub SetProgressValue(iValue As Integer, Optional sStatus As String)
+
+  If iValue > 100 Then iValue = 100
+  If iValue < 0 Then iValue = 0
+
+  prbStatus.Value = iValue / 100
+  If sStatus Then lblStatus.Text = sStatus
+  Wait 0.05
+
+End
+
+Public Sub txtCyberjunky_MouseDown()
+
+  Desktop.open(txtCyberjunky.Tag)
+
+End
+
+Public Sub txtKokoko3k_MouseDown()
+
+  Desktop.open(txtKokoko3k.Tag)
+
+End
