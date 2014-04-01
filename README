@@ -2,7 +2,8 @@ gbScan
 ======
 Gambas GUI for scanners using scanimage.
 
-Original forked from here https://github.com/kokoko3k/gbscan
+Original code written by Antonio Orefice.
+Forked by Ron Klinkien from here https://github.com/kokoko3k/gbscan
 
 Enhancements:
 ============
@@ -12,6 +13,8 @@ Implemented GUI size/position save/reload.
 Implemented splash screen with progress bar.
 Save enabled settings to config file, display them in separate tab.
 Config file is created in users home directory and is named .gbscan
+Fixed progressbar.
+Save last used save path.
 
 Depends on:
 ==========
@@ -33,7 +36,6 @@ Binaries/packages:
 imagemagick
 scanimage
 
-
 Download and run:
 =================
 $ git clone https://github.com/cyberjunky/gbscan.git
@@ -42,7 +44,4 @@ $ gbc3 -agtpm && gba3 && ./gbscan.gambas
 
 ToDo:
 =====
-Make multiple scanner selection work.
-Check for requirements on startup.
-Save more settings (file extension and save path)
-Fix preview resize issue.
+Check and warn for missing requirements on startup.

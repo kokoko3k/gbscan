@@ -161,6 +161,9 @@ Public Sub GetConfig()
     hSettings["Program/Debug"] = False
     hSettings.Save
 
+    ' enable all settings tab
+    TabStrip1.Index = 1
+
     ' re-load
     GetConfig()
   Else

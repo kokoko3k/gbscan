@@ -30,5 +30,17 @@
       Stretch = True
       Alignment = Align.Center
     }
+    { txtKokoko3k TextLabel
+      MoveScaled(3,10,24,2)
+      Font = Font["-3"]
+      Tag = "https://github.com/kokoko3k/gbscan"
+      Text = ("<a href=https://github.com/kokoko3k/gbscan>Original code by Antonio Orefice</a>")
+    }
+    { txtCyberjunky TextLabel
+      MoveScaled(9,12,24,2)
+      Font = Font["-3"]
+      Tag = "https://github.com/cyberjunky/gbscan"
+      Text = ("<a href=https://github.com/cyberjunky/gbscan>Enhanced code by Ron Klinkien</a>")
+    }
   }
 }

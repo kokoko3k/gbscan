@@ -46,3 +46,15 @@ Public Sub SetProgressValue(iValue As Integer, Optional sStatus As String)
   Wait 0.05
 
 End
+
+Public Sub txtCyberjunky_MouseDown()
+
+  Desktop.open(txtCyberjunky.Tag)
+
+End
+
+Public Sub txtKokoko3k_MouseDown()
+
+  Desktop.open(txtKokoko3k.Tag)
+
+End

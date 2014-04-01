@@ -14,7 +14,7 @@
       Count = 3
       Index = 0
       Text = ("Favorite Settings")
-      Picture = Picture["icon:/small/properties"]
+      Picture = Picture["icon:/small/bookmark"]
       { vboxDefaults ScrollView
         MoveScaled(1,0,46,23)
         Background = Color.TextBackground
@@ -539,10 +539,12 @@
         Spacing = True
         Padding = 4
         { txtWaiting TextLabel
-          MoveScaled(0,1,20,3)
+          MoveScaled(-4,1,28,3)
           Visible = False
           Expand = True
+          AutoResize = True
           Text = ("Waiting for scanner")
+          Alignment = Align.Center
         }
         { ProgressBar1 ProgressBar
           MoveScaled(21,0,9,3)
