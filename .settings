@@ -2,10 +2,14 @@
 Count=0
 
 [DebugWindow]
-Count=0
+Count=1
+DebugWindow[1]="myobj"
 
 [DebugWindow/Font]
 Geometry=[52,0,210,210]
+
+[DebugWindow/HBox(myobj.Parent).Parent]
+Geometry=[80,28,305,694]
 
 [DebugWindow/Last]
 Geometry=[52,0,404,555]
@@ -49,6 +53,9 @@ Geometry=[48,-4,258,403]
 [DebugWindow/myobj]
 Geometry=[52,0,305,694]
 
+[DebugWindow/myobj.Parent]
+Geometry=[66,14,305,694]
+
 [DebugWindow/myparent]
 Geometry=[52,0,210,210]
 
@@ -72,10 +79,11 @@ Geometry=[52,0,210,210]
 
 [OpenFile]
 File[1]=".src/FMain.form"
-File[2]=".src/FMain.class:487.0"
-Active=3
+File[2]=".src/FMain.class:314.7"
 File[3]="README:40.39"
-Count=3
+Active=4
+File[4]="whitepage.png"
+Count=4
 
 [Watches]
 Count=0

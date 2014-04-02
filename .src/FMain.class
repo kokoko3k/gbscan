@@ -312,8 +312,34 @@ Public Function FillOptions(sScanner As String) As String
   bOptionsLoaded = True
   Updatecheckboxes(vboxDefaults)
   Updatecheckboxes(vboxSettings)
+  Try CleanDefaults()
   
 End
+
+Public Sub CleanDefaults()
+  'remove unuseful labels and separators from the favourite tab
+  
+  Dim myobj As Object 
+  
+  For Each myobj In vboxDefaults.Children
+    If myobj Is Separator Then
+      If myobj.next Is Hbox Then
+        If myobj.next.next Is Separator Then
+          If (myobj.next.next.next Is Separator) Or (myobj.next.next.next = Null) Then
+            Try myobj.next.next.hide
+            Try myobj.next.hide
+            Try myobj.hide
+            Try myobj.next.next.delete
+            Try myobj.next.delete
+            Try myobj.delete
+          Endif
+        Endif
+      Endif
+    Endif
+  Next 'myobj
+  
+End
+
 
 Public Sub updatecheckboxes(oParent As Object)
   Dim myobj As Object
