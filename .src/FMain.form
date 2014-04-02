@@ -6,6 +6,7 @@
   Padding = 4
   { HSplit1 HSplit
     MoveScaled(2,1,111,90)
+    Border = False
     { TabStrip1 TabStrip
       MoveScaled(1,2,49,88)
       Expand = True
@@ -455,22 +456,18 @@
       Index = 0
     }
     { VBox2 VBox
-      MoveScaled(50,2,61,88)
+      MoveScaled(51,0,61,89)
       Expand = True
-      Spacing = True
-      Padding = 3
       { OuterBox Panel
         MoveScaled(1,13,54,63)
-        Background = &H000000&
         Expand = True
         Arrangement = Arrange.Vertical
         { PictureBox1 PictureBox
           MoveScaled(6,15,37,35)
-          Background = Color.LightForeground
           Tracking = True
           Expand = True
           Ignore = True
-          Picture = Picture["black.png"]
+          Picture = Picture["whitepage.png"]
           Stretch = True
         }
         { CropArea Panel
@@ -534,8 +531,11 @@
           }
         }
       }
+      { Separator1 Separator
+        MoveScaled(1,76,56,2)
+      }
       { BottomBox HBox
-        MoveScaled(1,77,54,4)
+        MoveScaled(2,79,54,4)
         Visible = False
         Spacing = True
         Padding = 4
@@ -560,7 +560,8 @@
         }
       }
       { HBox2 HBox
-        MoveScaled(1,83,54,4)
+        MoveScaled(2,84,54,4)
+        AutoResize = True
         Spacing = True
         Padding = 4
         { VBox9 VBox
@@ -571,26 +572,26 @@
           MoveScaled(0,0,11,4)
           AutoResize = True
           Text = ("Preview")
-          Picture = Picture["icon:/medium/find"]
+          Picture = Picture["icon:/small/find"]
         }
         { btnSaveNow Button
           MoveScaled(11,0,14,4)
           Enabled = False
           AutoResize = True
           Text = ("Save")
-          Picture = Picture["icon:/medium/save-as"]
+          Picture = Picture["icon:/small/save-as"]
         }
         { btnScan Button
           MoveScaled(25,0,17,4)
           AutoResize = True
           Text = ("Scan and save")
-          Picture = Picture["icon:/medium/insert-image"]
+          Picture = Picture["icon:/small/insert-image"]
         }
         { btnScanMulti Button
-          MoveScaled(42,0,14,4)
+          MoveScaled(37,0,14,4)
           AutoResize = True
           Text = ("Multipage")
-          Picture = Picture["icon:/medium/copy"]
+          Picture = Picture["icon:/small/copy"]
         }
       }
       { BigLabel Label

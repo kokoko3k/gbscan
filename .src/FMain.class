@@ -310,24 +310,30 @@ Public Function FillOptions(sScanner As String) As String
 
   If (sOption <> "") And (sDescription <> "") Then MakeObject(sOption, sDescription)
   bOptionsLoaded = True
-  Updatecheckboxes()
+  Updatecheckboxes(vboxDefaults)
+  Updatecheckboxes(vboxSettings)
   
 End
 
-Public Sub updatecheckboxes()
+Public Sub updatecheckboxes(oParent As Object)
   Dim myobj As Object
   Dim maxw As Integer = 0
+  Dim iPadding As Integer = 10
   For Each myobj In FMain.Controls
     If (myobj.name Like "mycheck_*") Or (myobj.name Like "CheckBoxF*") Then 
-      Try myobj.next.enabled = myobj.value
-      Try myobj.next.next.enabled = myobj.value
-      If (myobj.w > maxw) Then maxw = myobj.w
+      If myobj.parent.parent = oParent Then
+        Try myobj.next.enabled = myobj.value
+        Try myobj.next.next.enabled = myobj.value
+        If (myobj.w > maxw) Then maxw = myobj.w + iPadding
+      Endif
     Endif
   Next
   For Each myobj In FMain.Controls
    If myobj.name Like "mycheck_*" Then 
-     myobj.autoresize = False
-     myobj.w = maxw
+     If myobj.parent.parent = oParent Then
+       myobj.autoresize = False
+       myobj.w = maxw
+     Endif
    Endif
   Next
 End
@@ -894,6 +900,7 @@ Public Sub btnPreview_Click()
   If bDebug Then Debug cmdline
 
   PictureBox1.Picture = picture["black.png"]
+  OuterBox.Background = Color.black
   Wait
   hScanProcess = Shell cmdline For Input As "ScanProcess"
 
@@ -927,6 +934,7 @@ Public Sub btnScan_Click()
   cmdline = sScanImageCmd & " -p -d " & scanner & " " & gopts & scanopts & " --format tiff >" & sScanfile
   hScanProcess = Shell cmdline For Input As "ScanProcess"
   PictureBox1.Picture.Clear
+  OuterBox.Background = Color.black
   croparea.Hide
   btnTryFilters.enabled = True
   btnSaveNow.Enabled = True
