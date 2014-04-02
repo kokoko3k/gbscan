@@ -1,14 +1,15 @@
 FMain
-GBscan
+gbScan
 0
 0
-0.0.20
+0.0.29
 
 gb.image
 gb.qt4
 gb.form
 gb.desktop
 gb.form.dialog
+gb.settings
 gb.image.effect
 gb.image.imlib
 gb.pdf

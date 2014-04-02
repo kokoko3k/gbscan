@@ -1,0 +1,46 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,48,26)
+  Background = Color.SelectedForeground
+  Text = ("Startup")
+  Resizable = False
+  { Panel1 Panel
+    MoveScaled(1,1,46,24)
+    Border = Border.Raised
+    { prbStatus ProgressBar
+      MoveScaled(2,16,41,2)
+    }
+    { lblStatus Label
+      MoveScaled(3,19,40,3)
+      Alignment = Align.Center
+    }
+    { TextLabel6 TextLabel
+      MoveScaled(3,2,25,8)
+      Font = Font["Londrina Solid,+10"]
+      Text = ("gbScan")
+    }
+    { lblVersion Label
+      MoveScaled(17,2,7,3)
+      Alignment = Align.Center
+    }
+    { PictureBox1 PictureBox
+      MoveScaled(30,2,13,12)
+      Picture = Picture["gbscan.png"]
+      Stretch = True
+      Alignment = Align.Center
+    }
+    { txtKokoko3k TextLabel
+      MoveScaled(3,10,24,2)
+      Font = Font["-3"]
+      Tag = "https://github.com/kokoko3k/gbscan"
+      Text = ("<a href=https://github.com/kokoko3k/gbscan>Original code by Antonio Orefice</a>")
+    }
+    { txtCyberjunky TextLabel
+      MoveScaled(9,12,24,2)
+      Font = Font["-3"]
+      Tag = "https://github.com/cyberjunky/gbscan"
+      Text = ("<a href=https://github.com/cyberjunky/gbscan>Enhanced code by Ron Klinkien</a>")
+    }
+  }
+}

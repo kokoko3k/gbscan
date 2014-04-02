@@ -1,11 +1,23 @@
 gbScan
-====
-Gambas gui to scanimage
+======
+Gambas GUI for scanners using scanimage.
 
+Original code written by Antonio Orefice.
+Forked by Ron Klinkien, then merged back.
 
+Enhancements:
+============
+Code cleanup.
+Removed unused variables.
+Implemented GUI size/position save/reload.
+Implemented splash screen with progress bar.
+Save enabled settings to config file, display them in separate tab.
+Config file is created in users home directory and is named .gbscan
+Fixed progressbar.
+Save last used save path.
 
-Depends:
-=======
+Depends on:
+==========
 qt4
 Gambas3 runtimes:
 	gb
@@ -18,18 +30,20 @@ Gambas3 runtimes:
 	gb.image
 	gb.image.effect
 	gb.image.imlib
+	gb.settings
 
+Binaries/packages:
 imagemagick
-
-
+scanimage
 
 Download and run:
 =================
-git clone https://github.com/kokoko3k/gbscan.git
-cd gbscan
-gbc3 -e -a -g -t -p -m && gba3 && ./*.gambas
+$ git clone https://github.com/cyberjunky/gbscan.git
+$ cd gbscan
+$ gbc3 -agtpm && gba3 && ./gbscan.gambas
 
 ToDo:
-=================
-Make multiple scanner selection work
-Save scanner settings when quit
+=====
+Check and warn for missing requirements on startup.
+Create new controls when changing scanner
+Some settings are not saved

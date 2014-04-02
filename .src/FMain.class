@@ -1,488 +1,317 @@
 ' Gambas class file
 
-'Private Extern qsort(base As Pointer, nmemb As Pointer, size As Pointer, compar As Pointer) In "libc:6"
+Public sBaseDir As String = User.Home
+Public iWindowX As Integer
+Public iWindowY As Integer
+Public iWindowHeight As Integer
+Public iWindowWidth As Integer
+Public sProgramVersion As String = "0.01"
+Public sScanners As String
+Public sPreviewFile As String = "/dev/shm/out.tiff"
+Public sScanFile As String = "/dev/shm/out_s.tiff"
+Public sEffectFile As String = "/dev/shm/out_e.tiff"
+Public sDestinationFile As String
+Public sLastScanError As String
+Public sLastError As String
 
-Public scanimage As String = "LC_ALL=C scanimage"
-Public alabel As Label
-Public scanprocess As Process
-Public magickprocess As Process
-Public previewfile As String = "/dev/shm/out.tiff"
-Public scanfile As String = "/dev/shm/out_s.tiff" 
-Public effectfile As String = "/dev/shm/out_e.tiff"
-Public outfile As String = ""
-Public isPreview As Boolean = False
-Public isMultipage As Boolean = False
-Public scanning As Boolean = True
-Public mypdf As PdfDocument
-Public pages As Integer 'the page being scanned in multipage document
-Public destfile As String
+Public hScanProcess As Process
+Public hMagickProcess As Process
 
+Public sScanImageCmd As String = "LC_ALL=C scanimage"
+Public bOptionsLoaded As Boolean
+Public sOutput As String
+Public iPages As Integer
 
-Public Sub _new()
+Public bIsScanning As Boolean = True
+Public bIsPreview As Boolean
+Public bIsMultiPage As Boolean
+Public bIsManuallyStopped As Boolean
+Public bUpdatingQuality As Boolean
+Public bUpdatingSlidersEffects As Boolean
 
-End
+Public hPdfDocument As PdfDocument
+Public hImageOriginal As New Image
 
+Public oParent As Hbox
+Public oCheckBox As CheckBox
+Public oTextBox As TextBox
+Public oComboBox As ComboBox
+Public oSpinBox As SpinBox
+Public oLabel As Label
+Public bDebug As Boolean
+Public sSavePath As String
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' open form, init program
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Public Sub Form_Open()
-Stop
-  Me.Center
-  Wait 
-  If Init() = 0 Then 
+
+  ' open splash screen
+  FStartup.ShowModal
+
+  ' no scanner(s) found
+  If Not sScanners Then Quit
+
+  ' get saved values
+  GetConfig()
+
+  ' restore saved position and size
+  Me.Move(iWindowX, iWindowY, iWindowWidth, iWindowHeight)
+
+End
+
+Public Sub Form_Close()
+
+  ' remove temp files
+  CleanUp()
+
+  ' check all enabled checkboxes and save them
+  SaveEnabledSettings()
+
+  ' save window size and position
+  SetConfigValue("GUI/WindowX", Me.X)
+  SetConfigValue("GUI/WindowY", Me.Y)
+  SetConfigValue("GUI/WindowHeight", Me.Height)
+  SetConfigValue("GUI/WindowWidth", Me.Width)
+  SetConfigValue("Scan/Quality", slQuality.Value)
+  SetConfigValue("Save/Path", sSavePath)
+  SetConfigValue("Program/Debug", bDebug)
+
+End
+
+Public Sub SaveEnabledSettings()
+
+  Dim oObject, oControl As Object
+  Dim sOptionName, sValue As String
+
+  ' erase options section first
+  ClearConfigValues("Options")
+
+  For Each oObject In vboxDefaults.Children
+    If oObject Is Hbox Then
+      For Each oControl In oObject.Children
+        If oControl Is Checkbox Then
+          If Right(oControl.Text, 1) <> "=" Then
+            sOptionName = oControl.Tag
+          Else
+            sOptionName = Left(oControl.Tag, Len(oControl.Tag) - 1)
+          Endif
+          ' sOptionName & " : value = " & oControl.Next.Text
+          If oControl.Value = True Then
+            Try sValue = oControl.Next.Text
+            If Not Error Then SetConfigValue("Options/" & sOptionName, sValue)
+          Endif
+        Endif
+      Next
+    Endif
+  Next
+
+  For Each oObject In vboxSettings.Children
+    If oObject Is Hbox Then
+      For Each oControl In oObject.Children
+        If oControl Is Checkbox Then
+          If Right(oControl.Text, 1) <> "=" Then
+            sOptionName = oControl.Tag
+          Else
+            sOptionName = Left(oControl.Tag, Len(oControl.Tag) - 1)
+          Endif
+          ' sOptionName & " : value = " & oControl.Next.Text
+          If oControl.Value = True Then
+            Try sValue = oControl.Next.Text
+            If Not Error Then SetConfigValue("Options/" & sOptionName, sValue)
+          Endif
+        Endif
+      Next
+    Endif
+  Next
+
+End
+
+Public Sub Form_Show()
+
+  CorrectAreaAspect()
+  SlidersToCropArea()
+
+End
+
+Public Sub Form_Resize()
+
+  CorrectAreaAspect()
+  SlidersToCropArea()
+
+End
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' load config, create default config file if not found
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Public Sub GetConfig()
+
+  Dim hSettings As Settings
+
+  ' load basic settings from file, if the settings file is not
+  ' found then create one with default settings
+  If Not Exist(sBaseDir &/ ".gbscan") Then
+    hSettings = New Settings(sBaseDir &/ ".gbscan")
+    hSettings["GUI/WindowX"] = 175
+    hSettings["GUI/WindowY"] = 43
+    hSettings["GUI/WindowHeight"] = 613
+    hSettings["GUI/WindowWidth"] = 999
+    hSettings["Scan/Quality"] = 80
+    hSettings["Save/Path"] = sBaseDir
+    hSettings["Program/Debug"] = False
+    hSettings.Save
+
+    ' enable all settings tab
+    TabStrip1.Index = 1
+
+    ' re-load
+    GetConfig()
+  Else
+    hSettings = New Settings(sBaseDir &/ ".gbscan")
+    iWindowX = GetConfigValue("GUI/WindowX", 175)
+    iWindowY = GetConfigValue("GUI/WindowY", 43)
+    iWindowHeight = GetConfigValue("GUI/WindowHeight", 613)
+    iWindowWidth = GetConfigValue("GUI/WindowWidth", 999)
+    slQuality.Value = GetConfigValue("Scan/Quality", 90)
+    sSavePath = GetConfigValue("Save/Path", sBaseDir)
+    bDebug = GetConfigValue("Program/Debug", False)
+  Endif
+
+End
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' get a value from the config file
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Private Function GetConfigValue(sKey As String, Optional vValue As Variant) As Variant
+
+  Dim hSettings As Settings
+
+  hSettings = New Settings(sBaseDir &/ ".gbscan")
+
+  If Not IsNull(vValue) Then
+    Return hSettings[sKey, vValue]
+  Else
+    Return hSettings[sKey]
+  Endif
+
+End
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' set a value in the config file
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Public Sub SetConfigValue(sKey As String, vValue As Variant)
+
+  Dim hSettings As Settings
+
+  hSettings = New Settings(sBaseDir &/ ".gbscan")
+
+  hSettings[sKey] = vValue
+  hSettings.Save
+
+End
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' remove values from the config file
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Public Sub ClearConfigValues(sKey As String)
+
+  Dim hSettings As Settings
+
+  hSettings = New Settings(sBaseDir &/ ".gbscan")
+
+  hSettings.Clear(sKey)
+  hSettings.Save
+
+End
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' delete stray files
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Public Sub CleanUp()
+
+  Try Kill sEffectFile
+  Try Kill sPreviewFile
+  Try Kill sScanfile
+
+End
+
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' look for scanner(s)
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Public Function Init()
+
+  Dim sScanner As String
+
+  sScanners = FindScanners()
+  If sScanners = "" Then
+    Message.Error(("No scanner(s) found, closing!"))
     Return
-      Else
-    Debug "GoOn"
   Endif
+
+  For Each sScanner In Split(sScanners, ";", "", True)
+    ComboScanner.Add(sScanner)
+  Next
+  Wait
+
+  FillOptions(Trim(Split(ComboScanner.Text, "|", "", True)[1]))
+  SlidersToCropArea()
+
 End
 
-
-Public Sub SetParent(myparent As Hbox)
-  myparent.Height = 32
-  myparent.padding = 2
-  myparent.spacing = False
-End
-
-
-
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' query system for scanner(s)
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Public Function FindScanners() As String
-  Dim out As String
-  Shell scanimage & " -f '%m | %d;'" To out
-  Return out
-End
 
-Public Myparent As Hbox
-Public Mycheckbox As CheckBox
-Public mycombobox As Combobox
-Public Myspinbox As Spinbox
-Public MyTextBox As Textbox
+  Dim sOut As String
 
-Public Sub MakeCombo(option As String, description As String)
-  Dim suboptions As String[]
-  Dim suboption, defaultvalue As String
-  Dim checkname As String
-
-  myparent = New HBox(vbox1)
-  SetParent(myparent)
-
-  mycheckbox = New CheckBox(myparent) As "mycheck"
-  mycheckbox.tag = Mid$(Split(option, " ", "", True)[0], 3)
-  checkname = "mycheck_" & mycheckbox.tag
-  mycheckbox.name = checkname
-  mycheckbox.value = 0 'Not (option Like "* \\[inactive\\]")
-  mycheckbox.text = mycheckbox.tag
-  mycheckbox.AutoResize = True
-
-  mycombobox = New Combobox(myparent)
-  mycombobox.expand = True
-  mycombobox.readonly = True
-
-  suboptions = Split(option, "|", "", True)
-  For Each suboption In suboptions
-    If suboption Like "--*" Then 
-      suboption = Trim(Mid(suboption, 3 + Len(mycheckbox.tag)))
-       Else If suboption Like "* \\[*\\]" Then
-         defaultvalue = Split(Split(suboption, "[", "", True)[1], "]", "", True)[0]
-          suboption = Trim(Split(suboption, "[", "", True)[0])
-    Endif
-    mycombobox.Add(suboption)
-
-  Next 'suboption    
-  If defaultvalue <> "inactive" Then mycombobox.text = defaultvalue
-  myparent.tooltip = Trim(description)
-
-  If (option Like "*\\[inactive\\]") Then 
-    alabel = New Label(myparent)
-    alabel.text = "*"
-    alabel.font.bold = True
-    alabel.Foreground = Color.Red
-    alabel.autoresize = True
-  Endif
+  Shell sScanImageCmd & " -f '%m | %d;'" To sOut
+  Return sOut
 
 End
 
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' find all supported options of scanner cmd and display them
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Public Function FillOptions(sScanner As String) As String
 
-Public Sub MakeYesNo(option As String, description As String)
-  Dim suboptions As String[]
-  Dim suboption, defaultvalue As String
-  Dim checkname As String
-  
-  myparent = New HBox(vbox1)
-  SetParent(myparent)
-  
+  Dim sAllOptions, sLine, sOption, sDescription, sMyLabel As String
+  Dim bFirstLabel As Boolean = True
 
-  mycheckbox = New CheckBox(myparent) As "mycheck" 
-  mycheckbox.tag = Mid$(Split(option, "[", "", True)[0], 3) & "="
-  checkname = "mycheck_" & mycheckbox.tag
-  mycheckbox.name = checkname
-  mycheckbox.value = 0 'Not (option Like "* \\[inactive\\]")
-  mycheckbox.text = mycheckbox.tag
-  mycheckbox.AutoResize = True
+  Shell sScanImageCmd & " -d " & sScanner & " --all-options" To sAllOptions
 
-  mycombobox = New Combobox(myparent)
-  mycombobox.expand = True
-  mycombobox.readonly = True
-
-  suboptions = Split(option, "|", "", True)
-  For Each suboption In suboptions
-    If suboption Like "--*(*" Then 
-      suboption = Split(suboption, "(")[1]
-       Else If suboption Like "*)\\] \\[*\\]" Then
-         defaultvalue = Split(Split(suboption, "[", "", True)[1], "]", "", True)[0]
-          suboption = Trim(Split(suboption, ")", "", True)[0])
-    Endif
-    mycombobox.Add(suboption)
-  Next 'suboption    
-   If defaultvalue <> "inactive" Then mycombobox.text = defaultvalue
-   myparent.tooltip = Trim(description)
-   
-     If (option Like "*\\[inactive\\]") Then 
-    alabel = New Label(myparent)
-    alabel.text = "*"
-    alabel.font.bold = True
-    alabel.Foreground = Color.Red
-    alabel.autoresize = True
-  Endif
-   
-End
-
-
-Public Sub MakeRange(option As String, description As String)
-  Dim suboptions As String[]
-  Dim suboption, defaultvalue, unit As String
-  Dim MinValue, MaxValue, MinMaxValue, Mystep As String
-  Dim i As Integer
-  Dim checkname As String
-  
-  mystep = 1
-  myparent = New HBox(vbox1)
-  SetParent(myparent)
-  
-
-  mycheckbox = New CheckBox(myparent) As "mycheck"
-  mycheckbox.tag = Mid$(Split(option, " ", "", True)[0], 3)
-  checkname = "mycheck_" & mycheckbox.Tag
-  mycheckbox.name = checkname
-  mycheckbox.value = 0 'Not (option Like "* \\[inactive\\]")
-  mycheckbox.text = mycheckbox.tag
-  mycheckbox.AutoResize = True
-  
-  'Get min and max values
-  For Each suboption In Split(option, " ", "", True)
-    If suboption Like "*..*" Then
-      minvalue = Split(suboption, ".", "", True)[0]
-      maxvalue = Split(suboption, ".", "", True)[1]
-      '1..1200dpi -> 1200
-      If (maxvalue Like "*[a-z]*") Or (maxvalue Like "*[A-Z]*") Then
-        unit = Split(maxvalue, "0,1,2,3,4,5,6,7,8,9,0", "", True)[0]
-        maxvalue = Replace(MaxValue, unit, "")
-        Try maxvalue = Scan(maxvalue, "*[^0-9]*")[0] ' 192, -> 192
+  For Each sLine In Split(sAllOptions, "\n", "", True)
+    If sLine Like " *:" Then
+      If (sDescription <> "") Or If bFirstLabel Then sMyLabel = Trim(sLine)
+    Else If (sLine Like "* --*") Then
+      If sOption <> "" Then
+        If (sMyLabel <> "") And bFirstLabel Then
+          MakeLabel(Trim(sMyLabel))
+          sMyLabel = ""
+          bFirstLabel = False
+        Endif
+        MakeObject(sOption, sDescription)
+        sDescription = ""
+        If (sMyLabel <> "") And (Not bFirstLabel) Then
+           MakeLabel(Trim(sMyLabel))
+           sMyLabel = ""
+        Endif
       Endif
-     Else If suboption Like "\\[*\\]" Then
-         defaultvalue = Split(suboption, "[]", "", True)[0]
-    Endif
-  Next
-  
-  'Get step
-  i = InStr(option, "steps of")
-  If i <> 0 Then MyStep = Split(Mid(option, i + 9), ")")[0]
-
-  mycombobox = New Combobox(myparent)
-  mycombobox.expand = True
-  mycombobox.readonly = True
-
-
-Try maxvalue = Split(maxvalue, ".,%")[0]
-  For i = CInt(minvalue) To CInt(maxvalue) Step Mystep
-    mycombobox.Add(i)
-  Next
-  If defaultvalue <> "inactive" Then mycombobox.text = defaultvalue
-  myparent.tooltip = Trim(description)
-  
-    If (option Like "*\\[inactive\\]") Then 
-    alabel = New Label(myparent)
-    alabel.text = "*"
-    alabel.font.bold = True
-    alabel.Foreground = Color.Red
-    alabel.autoresize = True
-  Endif
-  
-End
-
-Public Sub MakeCheck(option As String, description As String)
-  Dim checkname As String
-  
-  myparent = New HBox(vbox1)
-  SetParent(myparent)
-  
-
-  mycheckbox = New CheckBox(myparent) As "mycheck"
-  mycheckbox.tag = Mid$(option, 3)
-  checkname = "mycheck_" & mycheckbox.tag
-  mycheckbox.name = checkname
-  mycheckbox.value = 0
-  mycheckbox.text = mycheckbox.tag
-  mycheckbox.AutoResize = True
-  myparent.tooltip = Trim(description)
-  
-    If (option Like "*\\[inactive\\]") Then 
-    alabel = New Label(myparent)
-    alabel.text = "*"
-    alabel.font.bold = True
-    alabel.Foreground = Color.Red
-    alabel.autoresize = True
-  Endif
-  
-End
-
-Public Sub makeint(option As String, description As String)
-  Dim defaultvalue As String
-  Dim checkname As String
-  
-  myparent = New HBox(vbox1)
-  SetParent(myparent)
-  
-  mycheckbox = New CheckBox(myparent) As "mycheck"
-  mycheckbox.tag = Split(Mid$(option, 3), "<")[0]
-  checkname = "mycheck_" & mycheckbox.tag
-  mycheckbox.name = checkname
-  mycheckbox.text = mycheckbox.tag
-  mycheckbox.AutoResize = True
-  myparent.tooltip = Trim(description)
-  myspinbox = New SpinBox(myparent)
-  myspinbox.MinValue = -65535
-  myspinbox.MaxValue = 65535
-  myspinbox.value = 0
-  myspinbox.expand = True
-  
-  defaultvalue = Split(Split(option, "[")[1], "]")[0]
-  If defaultvalue <> "inactive" Then mytextbox.text = defaultvalue
-  mycheckbox.value = Not (defaultvalue = "inactive")
-
-  If (option Like "*\\[inactive\\]") Then 
-    alabel = New Label(myparent)
-    alabel.text = "*"
-    alabel.font.bold = True
-    alabel.Foreground = Color.Red
-    alabel.autoresize = True
-  Endif
-  
-End
-
-Public Sub makefloat(option As String, description As String)
-  Dim defaultvalue As String
-  Dim mylabel As Label
-  Dim checkname As String
-  
-  myparent = New HBox(vbox1)
-  SetParent(myparent)
-  
-
-  mycheckbox = New CheckBox(myparent) As "mycheck"
-  mycheckbox.tag = Split(Mid$(option, 3), "<")[0]
-  checkname = "mycheck_" & mycheckbox.tag
-  mycheckbox.name = checkname
-  mycheckbox.text = mycheckbox.tag
-  mycheckbox.AutoResize = True
-  myparent.tooltip = Trim(description)
-  mytextbox = New Textbox(myparent)
-  mytextbox.expand = True
-  defaultvalue = Split(Split(option, "[")[1], "]")[0]
-  If defaultvalue <> "inactive" Then mytextbox.text = defaultvalue
-  mycheckbox.value = Not (defaultvalue = "inactive")
-  mylabel = New Label(myparent)
-  mylabel.text = "<float>"
-  mylabel.autoresize = True
-  
-    If (option Like "*\\[inactive\\]") Then 
-    alabel = New Label(myparent)
-    alabel.text = "*"
-    alabel.font.bold = True
-    alabel.Foreground = Color.Red
-    alabel.autoresize = True
-  Endif
-  
-End
-
-Public Sub makestring(option As String, description As String)
-  Dim defaultvalue As String
-  Dim checkname As String
-  
-  myparent = New HBox(vbox1)
-  SetParent(myparent)
-  
-  mycheckbox = New CheckBox(myparent) As "mycheck" 
-  mycheckbox.tag = Split(Mid$(option, 3), "<")[0]
-  checkname = "mycheck_" & mycheckbox.tag
-  mycheckbox.name = checkname
-  mycheckbox.text = mycheckbox.tag
-  mycheckbox.AutoResize = True
-  myparent.tooltip = Trim(description)
-  mytextbox = New Textbox(myparent)
-  mytextbox.expand = True
-  defaultvalue = Split(Split(option, "[")[1], "]")[0]
-  If defaultvalue <> "inactive" Then mytextbox.text = defaultvalue
-  mycheckbox.value = Not (defaultvalue = "inactive")
-  
-    If (option Like "*\\[inactive\\]") Then 
-    alabel = New Label(myparent)
-    alabel.text = "*"
-    alabel.font.bold = True
-    alabel.Foreground = Color.Red
-    alabel.autoresize = True
-  Endif
-  
-End
-
-
-Public Sub MakeObject(option As String, description As String)
-  If option Like "--* *|* \\[*\\]" Then
-    MakeCombo(option, description) 'Es: --depth 1|8|16 [8]
-    Else If option Like "--* <int>*" Then 
-      makeint(option, description)
-    Else If option Like "--* <float>*" Then 
-      makefloat(option, description)
-    Else If option Like "--* <string>*" Then 
-      makestring(option, description)
-    Else If option Like "--*\\[=*(*yes|no)\\] \\[*\\]" Then 'Es: --three-pass[=(yes|no)] [no] oppure --option[=(auto|yes|no)]
-      MakeYesNo(option, description)
-    Else If option Like "--* *..* (in steps of *) \\[*\\]" Then '--resolution 1..1200dpi (in steps of 1) [50]
-      MakeRange(option, description)
-    Else If option Like "--* *..* \\[*\\]" Then '--resolution 1..1200dpi [12]
-      MakeRange(Option, description)
-    Else If option Like "--*" Then
-      MakeCheck(option, description)
-  Endif
-End
-
-
-
-Public fullyloaded As Boolean = False
-
-
-Private Sub SetMinMaxStepValue(option As String, ByRef myslider As Slider, setmin As Boolean) 
-  Dim suboptions As String[]
-  Dim suboption, defaultvalue, unit As String
-  Dim MinValue, MaxValue, MinMaxValue, Mystep As String
-  Dim i As Integer
-
-  mystep = 1
-
-  
-  'Get min and max values
-  For Each suboption In Split(option, " ", "", True)
-    If suboption Like "*..*" Then
-      MinValue = Split(suboption, ".", "", True)[0]
-      MaxValue = Split(suboption, ".", "", True)[1]
-      '1..1200dpi -> 1200
-      If (maxvalue Like "*[a-z]*") Or (maxvalue Like "*[A-Z]*") Then
-        unit = Split(maxvalue, "0,1,2,3,4,5,6,7,8,9,0", "", True)[0]
-        maxvalue = Replace(MaxValue, unit, "")
-        Try maxvalue = Scan(maxvalue, "*[^0-9]*")[0] ' 192, -> 192
+      sOption = Trim(sLine)
+      sDescription = ""
+    Else If (sLine Like "* -? *..* \\[*\\]") Then
+      SetGeometryRange(sLine)
+    Else
+      If sOption <> "" Then
+        sDescription &= Trim(sLine) & "\n"
       Endif
-     Else If suboption Like "\\[*\\]" Then
-         defaultvalue = Split(suboption, "[]", "", True)[0]
     Endif
-  Next
-  
-  'Get step
-  i = InStr(option, "steps of")
-  If i <> 0 Then MyStep = Split(Mid(option, i + 9), ")")[0]
+  Next ' Line
 
-  myslider.minvalue = minvalue
-  myslider.maxvalue = maxvalue
-  myslider.step = mystep
-  If defaultvalue <> "inactive" Then 
-    If setmin Then 
-      myslider.value = minvalue 
-        Else
-      myslider.value = maxvalue 
-    Endif
-  Endif
-
-End
-
-
-
-Public Sub SetGeometryRange(linea As String)
-  If linea Like "*-l *" Then 'topleft x
-    SetMinMaxStepValue(linea, SliderX, True)
-      Else If linea Like "*-t *" Then 'topleft y
-        SetMinMaxStepValue(linea, SliderY, True)
-      Else If linea Like "*-x *" Then 'width
-        SetMinMaxStepValue(linea, SliderW, False)
-      Else If linea Like "*-y *" Then 'height
-        SetMinMaxStepValue(linea, SliderH, False)
-  Endif
-End
-
-
-Public Sub MakeLabel(mylab As String)
-  Dim mylabel As Label
-  Dim myseparator As Separator
-  myseparator = New Separator(vbox1)
-  myseparator.expand = False
-  myparent = New HBox(vbox1)
-  myparent.Height = 28
-  mylabel = New Label(myparent)
-  mylabel.Text = mylab
-  mylabel.Font.bold = True
-  mylabel.alignment = Align.bottomleft
-  mylabel.AutoResize = True
-  myseparator = New Separator(vbox1)
-  myseparator.expand = False
-  
-End
-
-
-Public Function Filloptions(scanner As String) As String
-  Dim alloptions As String
-  Dim Option, Description As String = ""
-  Dim linea, mylabel As String
-  Dim firstlabel As Boolean = True
-  
-  Shell scanimage & " -d " & scanner & " --all-options" To alloptions
-
-  For Each linea In Split(alloptions, "\n", "", True)
-
-    
-    If linea Like " *:" Then
-      If (description <> "") Or firstlabel Then mylabel = Trim(linea)
-        Else If (linea Like "* --*") Then 
-          If option <> "" Then
-            If (mylabel <> "") And firstlabel Then
-              MakeLabel(Trim(mylabel))
-              mylabel = ""
-              firstlabel = False
-            Endif   
-            MakeObject(option, description)
-            description = ""
-            If (mylabel <> "") And (Not firstlabel) Then
-               MakeLabel(Trim(mylabel))
-               mylabel = ""
-            Endif 
-      Endif
-     Option = Trim(linea)
-     description = ""
-      Else If (linea Like "* -? *..* \\[*\\]") Then
-          SetGeometryRange(linea)
-      Else
-     If option <> "" Then
-       Description = Description & Trim(linea) & "\n"
-     Endif
-    Endif
-  Next 'line
-
-  If (option <> "") And (description <> "") Then
-    MakeObject(option, description)
-  Endif
-
-  fullyloaded = True
+  If (sOption <> "") And (sDescription <> "") Then MakeObject(sOption, sDescription)
+  bOptionsLoaded = True
   Updatecheckboxes()
-End
-
-
-
-
-Public Sub mycheck_Click()
-  If fullyloaded Then Try Last.next.enabled = Last.value
+  
 End
 
 Public Sub updatecheckboxes()
@@ -503,182 +332,686 @@ Public Sub updatecheckboxes()
   Next
 End
 
-Public Function Init() As Boolean
-  Dim scanner, scanners As String
-  Dim options As String
+Public Sub MakeObject(sOptionName As String, sDescription As String)
 
-  Try Kill effectfile
-  Try Kill previewfile
-  Try Kill scanfile
-
-  scanners = FindScanners()
-  If scanners = "" Then 
-    Message.error(("No scanner found!"))
-    FMain.close
-    Return 0
+  If sOptionName Like "--* *|* \\[*\\]" Then
+    MakeCombo(sOptionName, sDescription) ' --depth 1|8|16 [8]
+  Else If sOptionName Like "--* <int>*" Then
+    MakeInt(sOptionName, sDescription)
+  Else If sOptionName Like "--* <float>*" Then
+    MakeFloat(sOptionName, sDescription)
+  Else If sOptionName Like "--* <string>*" Then
+    MakeString(sOptionName, sDescription)
+  Else If sOptionName Like "--*\\[=*(*yes|no)\\] \\[*\\]" Then ' --three-pass[=(yes|no)] [no] oppure --option[=(auto|yes|no)]
+    MakeYesNo(sOptionName, sDescription)
+  Else If sOptionName Like "--* *..* (in steps of *) \\[*\\]" Then ' --resolution 1..1200dpi (in steps of 1) [50]
+    MakeRange(sOptionName, sDescription)
+  Else If sOptionName Like "--* *..* \\[*\\]" Then ' --resolution 1..1200dpi [12]
+    MakeRange(sOptionName, sDescription)
+  Else If sOptionName Like "--*" Then
+    MakeCheck(sOptionName, sDescription)
   Endif
-
-  For Each scanner In Split(scanners, ";", "", True)
-    ComboScanner.Add(scanner)
-  Next
-  Wait
-  Filloptions(Trim(Split(ComboScanner.text, "|", "", True)[1]))
-  SlidersToCropArea()
 
 End
 
+Public Sub SetParent(oObject As Hbox)
+
+  oObject.Height = 32
+  oObject.Padding = 2
+  oObject.Spacing = False
+
+End
+
+Public Sub MakeLabel(sName As String)
+
+  Dim oSeparator As Separator
+
+  oSeparator = New Separator(vboxDefaults)
+  oSeparator.Expand = False
+  oParent = New HBox(vboxDefaults)
+  oParent.Height = 28
+  oLabel = New Label(oParent)
+  oLabel.Text = sName
+  oLabel.Font.bold = True
+  oLabel.Alignment = Align.BottomLeft
+  oLabel.AutoResize = True
+  oSeparator = New Separator(vboxDefaults)
+  oSeparator.Expand = False
+
+  oSeparator = New Separator(vboxSettings)
+  oSeparator.Expand = False
+  oParent = New HBox(vboxSettings)
+  oParent.Height = 28
+  oLabel = New Label(oParent)
+  oLabel.Text = sName
+  oLabel.Font.bold = True
+  oLabel.Alignment = Align.BottomLeft
+  oLabel.AutoResize = True
+  oSeparator = New Separator(vboxSettings)
+  oSeparator.Expand = False
+
+End
+
+Public Sub MakeCombo(option As String, description As String)
+
+  Dim sSavedValue, sName As String
+
+  Dim suboptions As String[]
+  Dim suboption, defaultvalue As String
+  Dim checkname As String
+
+  ' construct name
+  sName = Mid$(Split(option, " ", "", True)[0], 3)
+
+  ' check if option was saved
+  sSavedValue = GetConfigValue("Options/" & sName)
+
+  If sSavedValue Then ' create on default tab
+    oParent = New HBox(vboxDefaults)
+  Else ' create on settings tab
+    oParent = New HBox(vboxSettings)
+  Endif
+  SetParent(oParent)
+
+  oCheckBox = New CheckBox(oParent) As "mycheck"
+  oCheckBox.tag = sName
+  checkname = "mycheck_" & sName
+  oCheckBox.name = checkname
+  oCheckBox.value = 0 ' Not (option Like "* \\[inactive\\]")
+  oCheckBox.text = sName
+  oCheckBox.AutoResize = True
+
+  oComboBox = New Combobox(oParent)
+  oComboBox.expand = True
+  oComboBox.readonly = True
+
+  suboptions = Split(option, "|", "", True)
+  For Each suboption In suboptions
+    If suboption Like "--*" Then
+      suboption = Trim(Mid(suboption, 3 + Len(oCheckBox.tag)))
+    Else If suboption Like "* \\[*\\]" Then
+      defaultvalue = Split(Split(suboption, "[", "", True)[1], "]", "", True)[0]
+      suboption = Trim(Split(suboption, "[", "", True)[0])
+    Endif
+    ' DEBUG oCheckBox.tag & " " & suboption
+    oComboBox.Add(suboption)
+  Next ' suboption
+
+  If (option Like "*\\[inactive\\]") Then ' inactive option
+    oCheckBox.Value = False
+    oCheckBox.Enabled = False
+    oLabel = New Label(oParent)
+    oLabel.Text = "Disabled"
+    oLabel.Font.bold = True
+    oLabel.Foreground = Color.Red
+    oLabel.Autoresize = True
+  Else
+    If sSavedValue Then ' set it as selected
+      oCheckBox.Value = True
+      oComboBox.Text = sSavedValue
+    Else
+      If defaultvalue <> "inactive" Then oComboBox.text = defaultvalue
+    Endif
+  Endif
+  oParent.tooltip = Trim(description)
+
+End
+
+Public Sub MakeYesNo(option As String, description As String)
+
+  Dim sSavedValue, sName As String
+
+  Dim suboptions As String[]
+  Dim suboption, defaultvalue As String
+  Dim checkname As String
+
+  ' construct name
+  sName = Mid$(Split(option, "[", "", True)[0], 3) & "="
+
+  ' check if option was saved (strip '=' from right)
+  sSavedValue = GetConfigValue("Options/" & Left(sName, Len(sName) - 1))
+
+  If sSavedValue Then ' create on default tab
+    oParent = New HBox(vboxDefaults)
+  Else ' create on settings tab
+    oParent = New HBox(vboxSettings)
+  Endif
+  SetParent(oParent)
+
+  oCheckBox = New CheckBox(oParent) As "mycheck"
+  oCheckBox.tag = sName
+  checkname = "mycheck_" & sName
+  oCheckBox.name = checkname
+  oCheckBox.value = 0 ' Not (option Like "* \\[inactive\\]")
+  oCheckBox.text = sName
+  oCheckBox.AutoResize = True
+
+  oComboBox = New Combobox(oParent)
+  oComboBox.expand = True
+  oComboBox.readonly = True
+
+  suboptions = Split(option, "|", "", True)
+  For Each suboption In suboptions
+    If suboption Like "--*(*" Then
+      suboption = Split(suboption, "(")[1]
+       Else If suboption Like "*)\\] \\[*\\]" Then
+         defaultvalue = Split(Split(suboption, "[", "", True)[1], "]", "", True)[0]
+          suboption = Trim(Split(suboption, ")", "", True)[0])
+    Endif
+    oComboBox.Add(suboption)
+  Next ' suboption
+
+  If sSavedValue Then ' set it as selected
+    oCheckBox.Value = True
+    oComboBox.Text = sSavedValue
+  Else
+    If defaultvalue <> "inactive" Then oComboBox.text = defaultvalue
+  Endif
+  oParent.tooltip = Trim(description)
+
+  If (option Like "*\\[inactive\\]") Then
+    oLabel = New Label(oParent)
+    oLabel.text = "*"
+    oLabel.font.bold = True
+    oLabel.Foreground = Color.Red
+    oLabel.autoresize = True
+  Endif
+
+End
+
+Public Sub MakeRange(option As String, description As String)
+
+  Dim sSavedValue, sName As String
+
+  Dim checkname, suboption, defaultvalue, unit, MinValue, MaxValue, Mystep As String
+  Dim i As Integer
+
+  mystep = 1
+
+  ' construct name
+  sName = Mid$(Split(option, " ", "", True)[0], 3)
+
+  ' check if option was saved
+  sSavedValue = GetConfigValue("Options/" & sName)
+
+  If sSavedValue Then ' create on default tab
+    oParent = New HBox(vboxDefaults)
+  Else ' create on settings tab
+    oParent = New HBox(vboxSettings)
+  Endif
+  SetParent(oParent)
+
+  oCheckBox = New CheckBox(oParent) As "mycheck"
+  oCheckBox.tag = sName
+  checkname = "mycheck_" & sName
+  oCheckBox.name = checkname
+  oCheckBox.value = 0 ' Not (option Like "* \\[inactive\\]")
+  oCheckBox.text = sName
+  oCheckBox.AutoResize = True
+
+  ' Get min and max values
+  For Each suboption In Split(option, " ", "", True)
+    If suboption Like "*..*" Then
+      minvalue = Split(suboption, ".", "", True)[0]
+      maxvalue = Split(suboption, ".", "", True)[1]
+      ' 1..1200dpi -> 1200
+      If (maxvalue Like "*[a-z]*") Or (maxvalue Like "*[A-Z]*") Then
+        unit = Split(maxvalue, "0,1,2,3,4,5,6,7,8,9,0", "", True)[0]
+        maxvalue = Replace(MaxValue, unit, "")
+        Try maxvalue = Scan(maxvalue, "*[^0-9]*")[0] ' 192, -> 192
+      Endif
+     Else If suboption Like "\\[*\\]" Then
+         defaultvalue = Split(suboption, "[]", "", True)[0]
+    Endif
+  Next
+
+  ' Get step
+  i = InStr(option, "steps of")
+  If i <> 0 Then MyStep = Split(Mid(option, i + 9), ")")[0]
+
+  oComboBox = New Combobox(oParent)
+  oComboBox.expand = True
+  oComboBox.readonly = True
+
+  Try maxvalue = Split(maxvalue, ".,%")[0]
+  For i = CInt(minvalue) To CInt(maxvalue) Step Mystep
+    oComboBox.Add(i)
+  Next
+
+  If sSavedValue Then ' set it as selected
+    oCheckBox.Value = True
+    oComboBox.Text = sSavedValue
+  Else
+    If defaultvalue <> "inactive" Then oComboBox.text = defaultvalue
+  Endif
+  oParent.tooltip = Trim(description)
+
+  If (option Like "*\\[inactive\\]") Then
+    oLabel = New Label(oParent)
+    oLabel.text = "*"
+    oLabel.font.bold = True
+    oLabel.Foreground = Color.Red
+    oLabel.autoresize = True
+  Endif
+
+End
+
+Public Sub MakeCheck(option As String, description As String)
+
+  Dim checkname As String
+  Dim sSavedValue, sName As String
+  ' construct name
+  sName = Mid$(Split(option, " ", "", True)[0], 3)
+  
+  ' check if option was saved
+  sSavedValue = GetConfigValue("Options/" & sName)
+
+  If sSavedValue Then ' create on default tab
+    oParent = New HBox(vboxDefaults)
+  Else ' create on settings tab
+    oParent = New HBox(vboxSettings)
+  Endif
+
+  SetParent(oParent)
+
+  oCheckBox = New CheckBox(oParent) As "mycheck"
+  oCheckBox.tag = Mid$(option, 3)
+  checkname = "mycheck_" & oCheckBox.tag
+  oCheckBox.name = checkname
+  oCheckBox.value = 0
+  oCheckBox.text = oCheckBox.tag
+  oCheckBox.AutoResize = True
+  oParent.tooltip = Trim(description)
+
+  If (option Like "*\\[inactive\\]") Then
+    oLabel = New Label(oParent)
+    oLabel.text = "*"
+    oLabel.font.bold = True
+    oLabel.Foreground = Color.Red
+    oLabel.autoresize = True
+  Endif
+
+End
+
+Public Sub MakeInt(option As String, description As String)
+
+  Dim sSavedValue, sName As String
+
+  Dim defaultvalue As String
+  Dim checkname As String
+
+  ' construct name
+  sName = Split(Mid$(option, 3), "<")[0]
+
+  ' check if option was saved
+  sSavedValue = GetConfigValue("Options/" & sName)
+
+  If sSavedValue Then ' create on default tab
+    oParent = New HBox(vboxDefaults)
+  Else ' create on settings tab
+    oParent = New HBox(vboxSettings)
+  Endif
+  SetParent(oParent)
+
+  oCheckBox = New CheckBox(oParent) As "mycheck"
+  oCheckBox.tag = sName
+  checkname = "mycheck_" & sName
+  oCheckBox.name = checkname
+  oCheckBox.text = sName
+  oCheckBox.AutoResize = True
+  oParent.tooltip = Trim(description)
+  oSpinBox = New SpinBox(oParent)
+  oSpinBox.MinValue = -65535
+  oSpinBox.MaxValue = 65535
+  oSpinBox.value = 0
+  oSpinBox.expand = True
+
+  defaultvalue = Split(Split(option, "[")[1], "]")[0]
+
+  If sSavedValue Then ' set it as selected
+    oCheckBox.Value = True
+    oComboBox.Text = sSavedValue
+  Else
+    If defaultvalue <> "inactive" Then oComboBox.text = defaultvalue
+  Endif
+  oCheckBox.value = Not (defaultvalue = "inactive")
+
+  If (option Like "*\\[inactive\\]") Then
+    oLabel = New Label(oParent)
+    oLabel.text = "*"
+    oLabel.font.bold = True
+    oLabel.Foreground = Color.Red
+    oLabel.autoresize = True
+  Endif
+
+End
+
+Public Sub MakeFloat(option As String, description As String)
+
+  Dim checkname, defaultvalue As String
+  Dim mylabel As Label
+  
+  Dim sSavedValue, sName As String
+  ' construct name
+  sName = Mid$(Split(option, " ", "", True)[0], 3)
+  ' check if option was saved
+  sSavedValue = GetConfigValue("Options/" & sName)
+
+  If sSavedValue Then ' create on default tab
+    oParent = New HBox(vboxDefaults)
+  Else ' create on settings tab
+    oParent = New HBox(vboxSettings)
+  Endif
+
+  SetParent(oParent)
+
+  oCheckBox = New CheckBox(oParent) As "mycheck"
+  oCheckBox.tag = Split(Mid$(option, 3), "<")[0]
+  checkname = "mycheck_" & oCheckBox.tag
+  oCheckBox.name = checkname
+  oCheckBox.text = oCheckBox.tag
+  oCheckBox.AutoResize = True
+  oParent.tooltip = Trim(description)
+  oTextBox = New Textbox(oParent)
+  oTextBox.expand = True
+  defaultvalue = Split(Split(option, "[")[1], "]")[0]
+  If defaultvalue <> "inactive" Then oTextBox.text = defaultvalue
+  oCheckBox.value = Not (defaultvalue = "inactive")
+  mylabel = New Label(oParent)
+  mylabel.text = "<float>"
+  mylabel.autoresize = True
+
+  If (option Like "*\\[inactive\\]") Then
+    oLabel = New Label(oParent)
+    oLabel.text = "*"
+    oLabel.font.bold = True
+    oLabel.Foreground = Color.Red
+    oLabel.autoresize = True
+  Endif
+
+End
+
+Public Sub MakeString(option As String, description As String)
+
+  Dim checkname, defaultvalue As String
+  Dim sSavedValue, sName As String
+  ' construct name
+  sName = Mid$(Split(option, " ", "", True)[0], 3)
+
+  ' check if option was saved
+  sSavedValue = GetConfigValue("Options/" & sName)
+
+  If sSavedValue Then ' create on default tab
+    oParent = New HBox(vboxDefaults)
+  Else ' create on settings tab
+    oParent = New HBox(vboxSettings)
+  Endif
+  
+  SetParent(oParent)
+
+  oCheckBox = New CheckBox(oParent) As "mycheck"
+  oCheckBox.tag = Split(Mid$(option, 3), "<")[0]
+  checkname = "mycheck_" & oCheckBox.tag
+  oCheckBox.name = checkname
+  oCheckBox.text = oCheckBox.tag
+  oCheckBox.AutoResize = True
+  oParent.tooltip = Trim(description)
+  oTextBox = New Textbox(oParent)
+  oTextBox.expand = True
+  defaultvalue = Split(Split(option, "[")[1], "]")[0]
+  If defaultvalue <> "inactive" Then oTextBox.text = defaultvalue
+  oCheckBox.value = Not (defaultvalue = "inactive")
+
+  If (option Like "*\\[inactive\\]") Then
+    oLabel = New Label(oParent)
+    oLabel.text = "*"
+    oLabel.font.bold = True
+    oLabel.Foreground = Color.Red
+    oLabel.autoresize = True
+  Endif
+
+End
+
+Private Sub SetMinMaxStepValue(option As String, ByRef myslider As Slider, setmin As Boolean)
+
+  Dim suboption, defaultvalue, unit, MinValue, MaxValue, Mystep As String
+  Dim i As Integer
+
+  mystep = 1
+
+  ' Get min and max values
+  For Each suboption In Split(option, " ", "", True)
+    If suboption Like "*..*" Then
+      MinValue = Split(suboption, ".", "", True)[0]
+      MaxValue = Split(suboption, ".", "", True)[1]
+       ' 1..1200dpi -> 1200
+      If (maxvalue Like "*[a-z]*") Or (maxvalue Like "*[A-Z]*") Then
+        unit = Split(maxvalue, "0,1,2,3,4,5,6,7,8,9,0", "", True)[0]
+        maxvalue = Replace(MaxValue, unit, "")
+        Try maxvalue = Scan(maxvalue, "*[^0-9]*")[0] ' 192, -> 192
+      Endif
+    Else If suboption Like "\\[*\\]" Then
+      defaultvalue = Split(suboption, "[]", "", True)[0]
+    Endif
+  Next
+
+  ' Get step
+  i = InStr(option, "steps of")
+  If i <> 0 Then MyStep = Split(Mid(option, i + 9), ")")[0]
+
+  myslider.minvalue = minvalue
+  myslider.maxvalue = maxvalue
+  myslider.step = mystep
+  If defaultvalue <> "inactive" Then
+    If setmin Then 
+      myslider.value = minvalue 
+        Else
+      myslider.value = maxvalue 
+    Endif
+  Endif
+
+End
+
+Public Sub SetGeometryRange(linea As String)
+
+  If linea Like "*-l *" Then ' topleft x
+    SetMinMaxStepValue(linea, SliderX, True)
+  Else If linea Like "*-t *" Then ' topleft y
+    SetMinMaxStepValue(linea, SliderY, True)
+  Else If linea Like "*-x *" Then ' width
+    SetMinMaxStepValue(linea, SliderW, False)
+  Else If linea Like "*-y *" Then ' height
+    SetMinMaxStepValue(linea, SliderH, False)
+  Endif
+
+End
+
+Public Sub mycheck_Click()
+
+  If bOptionsLoaded Then Try Last.Next.Enabled = Last.Value
+
+End
 
 Public Function ParseGui() As String
+
   Dim a, b As Object
   Dim outstr As String = ""
-  For Each a In vbox1.Children
+
+  For Each a In vboxDefaults.Children
     If a Is Hbox Then
       For Each b In a.Children
         If b Is Checkbox Then
           If b.value = True Then
-            outstr = outstr & "--" & b.tag 
-            If Right(b.text, 1) <> "=" Then outstr = outstr & " "
-            outstr = outstr & "'" & b.next.text & "'" & " "
+            outstr &= "--" & b.tag
+            If Right(b.text, 1) <> "=" Then outstr &= " "
+            outstr &= "'" & b.next.text & "'" & " "
           Endif
         Endif
       Next
     Endif
-  Next 'vbox1
+  Next
+
+  For Each a In vboxSettings.Children
+    If a Is Hbox Then
+      For Each b In a.Children
+        If b Is Checkbox Then
+          If b.value = True Then
+            outstr &= "--" & b.tag
+            If Right(b.text, 1) <> "=" Then outstr &= " "
+            outstr &= "'" & b.next.text & "'" & " "
+          Endif
+        Endif
+      Next
+    Endif
+  Next
   Return outstr
-  
+  If bDebug Then Debug outstr
+
 End
 
+Public Sub btnPreview_Click()
 
-Public Sub ButtonPreview_Click()
-  Dim cmdline, scanopts As String
-  Dim scanner As String
-  Dim gopts As String 
+  Dim scanner, gopts, cmdline, scanopts As String
 
   SlidersToCropArea()
 
-  isPreview = True
-  TextWaiting.show
+  bIsPreview = True
+  txtWaiting.show
   ProgressBar1.hide
-  ButtonCancel.show
+  btnCancel.show
   BottomBox.show
   croparea.hide
-  
+
   ProgressBar1.Value = 0
-  scanner = "'" & (Trim(Split(ComboScanner.text, "|", "", True)[1])) & "'"
+  scanner = "'" & (Trim(Split(ComboScanner.Text, "|", "", True)[1])) & "'"
   scanopts = ParseGui()
 
+  ' no geometry options for the preview
+  gopts &= " -x " & CInt(SliderW.maxvalue - SliderW.minvalue - 1)
+  gopts &= " -y " & CInt(SliderH.maxvalue - SliderH.minvalue - 1) & " "
 
-'no geometry options for the preview
-   gopts &= " -x " & CInt(SliderW.maxvalue - SliderW.minvalue - 1)
-   gopts &= " -y " & CInt(SliderH.maxvalue - SliderH.minvalue - 1) & " "
+  cmdline = sScanImageCmd & " -p -d " & scanner & " " & scanopts & gopts & " --format tiff >" & sPreviewFile
+  If bDebug Then Debug cmdline
 
-  cmdline = scanimage & " -p -d " & scanner & " " & scanopts & gopts & " --format tiff >" & previewfile
-  'pipe to scanimage because my scanner driver outputs corrupted images.
-  'cmdline = scanimage & " -p -d " & scanner & " " & gopts & scanopts & " --format 'tiff' |convert - " & previewfile
-
-  PictureBox1.Picture = picture["Black.png"]
+  PictureBox1.Picture = picture["black.png"]
   Wait
-
-  'scanprocess = Shell cmdline For Read As "scanprocess"
-  scanprocess = Shell cmdline For Input As "scanprocess"
-  Debug cmdline
+  hScanProcess = Shell cmdline For Input As "ScanProcess"
 
 End
 
-Public Sub ButtonScan_Click()
-  Dim cmdline, scanopts, gopts As String
-  Dim scanner As String
-  
-  If Not ismultipage Then
-    If ShowSaveDialog() Then Return
+Public Sub btnScan_Click()
 
-    destfile = Dialog.Path
+  Dim scanner, cmdline, scanopts, gopts As String
+
+  If Not bIsMultiPage Then
+    If ShowSaveDialog() Then Return
+    sDestinationFile = Dialog.Path
   Endif
 
-  isPreview = False
-  TextWaiting.show
-  ProgressBar1.hide
-  ButtonCancel.show
-  BottomBox.show
-  croparea.hide
-  scanning = True
-  'Try Kill previewfile
+  bIsPreview = False
+  txtWaiting.Show
+  ProgressBar1.Hide
+  btnCancel.Show
+  BottomBox.Show
+  croparea.Hide
+  bIsScanning = True
+
   ProgressBar1.Value = 0
   scanner = "'" & (Trim(Split(ComboScanner.text, "|", "", True)[1])) & "'"
   scanopts = ParseGui()
-  gopts = " -l " & SliderX.value 
-  gopts &= " -t " & SliderY.value 
+  gopts = " -l " & SliderX.value
+  gopts &= " -t " & SliderY.value
   gopts &= " -x " & CInt(SliderW.value - 1)
   gopts &= " -y " & CInt(SliderH.value - 1) & " "
 
-  cmdline = scanimage & " -p -d " & scanner & " " & gopts & scanopts & " --format tiff >" & scanfile
-  'cmdline = scanimage & " -p -d " & scanner & " " & gopts & scanopts & " --format 'tiff' |convert - " & ParseEffects() & previewfile
-  'scanprocess = Shell cmdline For Read As "scanprocess"
-  scanprocess = Shell cmdline For Input As "scanprocess"
-  Print cmdline
+  cmdline = sScanImageCmd & " -p -d " & scanner & " " & gopts & scanopts & " --format tiff >" & sScanfile
+  hScanProcess = Shell cmdline For Input As "ScanProcess"
   PictureBox1.Picture.Clear
-  croparea.hide
-  ButtonPreview2.enabled = True
-  ButtonSaveNow.Enabled = True
+  croparea.Hide
+  btnTryFilters.enabled = True
+  btnSaveNow.Enabled = True
+
 End
 
-Public Function findfree(filename As String) As String
-  'gbscan.pdf -> gbscan.001.pdf
+Public Function FindFree(filename As String) As String
+
+  ' gbscan.pdf -> gbscan.001.pdf
   Dim basename As String = File.Dir(filename) & File.BaseName(filename)
   Dim extension As String = File.Ext(filename)
   Dim tmpout As String = basename
   Dim i As Integer = 0
+
   While Exist(tmpout & "." & extension)
     tmpout = basename & "." & makedigits(i, 3)
-    i = i + 1
+    Inc i
   Wend
   Return tmpout & "." & extension
+
 End
 
+Public Function MakeDigits(iI As Integer, iDigits As Integer) As String
 
-Public Function makedigits(i As Integer, digits As Integer) As String
-  Dim out As String = ""
-  out = i
-  While Len(out) < digits
-    out = "0" & out
+  Dim sOut As String = iI
+
+  While Len(sOut) < iDigits
+    sOut = "0" & sOut
   Wend
-  Return out
+  Return sOut
+
 End
 
+Public Sub ScanProcess_Read()
 
-Public Sub scanprocess_kill()
-  Dim cmdline, outfmt As String
-  Dim tmp As String
-  Dim i As Integer = 1
+  Dim sProgress, sPercent As String
+  Dim fPercent As Float
+
+  Read #Last, sProgress, -256
+  If bDebug Then Debug sProgress;
+
+  If sProgress Like "*%*" Then
+    Try sPercent = Split(Split(sProgress, " ", "", True)[1], "%", "", True)[0]
+    Try fPercent = CFloat(sPercent)
+    If Not Error Then
+      txtWaiting.Hide
+      ProgressBar1.Show
+      ProgressBar1.Value = fPercent / 100
+    Endif
+  Endif
+
+End
+
+Public Sub ScanProcess_Kill()
+
+  Dim tmp, cmdline, outfmt As String
   Dim dpi As Integer
 
-  If manuallystopped Then
-    manuallystopped = False
-    Try Message.info("Scan stopped")
+  If bIsManuallyStopped Then
+    bIsManuallyStopped = False
+    Try Message.info("Scanning is cancelled!")
     ProgressBar1.Value = 1
-    ButtonCancel.hide
+    btnCancel.hide
     BottomBox.hide
     Return
-  Endif 
+  Endif
 
-  If scanprocess.value <> 0 Then Try Message.Error(lasterrorscanimage & "\n-\n" & lasterror)
+  If hScanProcess.Value <> 0 Then Try Message.Error(sLastScanError & "\n-\n" & sLastError)
   ProgressBar1.Value = 1
-  ButtonCancel.hide
+  btnCancel.hide
   BottomBox.hide
 
-  If ispreview Then
-    Try PictureBox1.picture = picture.Load(previewfile)
+  If bIsPreview Then
+    Try PictureBox1.picture = picture.Load(sPreviewFile)
     If Error Then
-      Shell "convert " & Quote(previewfile) & " " & Quote(previewfile) To tmp
-      Try PictureBox1.picture = picture.Load(previewfile)
-      If Error Then 
-        message.error("Unable to load picture")
-        scanning = False
+      Shell "convert " & Quote(sPreviewFile) & " " & Quote(sPreviewFile) To tmp
+      Try PictureBox1.picture = picture.Load(sPreviewFile)
+      If Error Then
+        message.error("Unable to load picture!")
+        bIsScanning = False
         Return
       Endif
     Endif
-    'seems that drivers sometimes pretend the scan area to be longer than the reality, so
-    'get the page length out of the aspect and the width
+    ' seems that drivers sometimes pretend the scan area to be longer than the reality, so
+    ' get the page length out of the aspect and the width
     sliderh.MaxValue = CInt((PictureBox1.Picture.H * sliderw.MaxValue) / PictureBox1.Picture.W)
     SpinBoxH.maxvalue = sliderh.MaxValue
     SliderY.MaxValue = sliderh.MaxValue
@@ -688,164 +1021,155 @@ Public Sub scanprocess_kill()
     SlidersToCropArea()
     Wait
     croparea.show
-    ButtonPreview2.enabled = True
-    ButtonSaveNow.Enabled = True
+    btnTryFilters.enabled = True
+    btnSaveNow.Enabled = True
     Wait
+  Else ' is not preview
+    outfmt = Upper(File.Ext(sDestinationFile))
+    sOutput = sDestinationFile
 
-      Else 'is not preview    
-
-    outfmt = Upper(File.Ext(destfile))
-    outfile = destfile
-
-    If isMultipage Then 
-      BigLabel.text = "Loading page " & pages & "..."
+    If bIsMultiPage Then
+      BigLabel.text = ("Loading page #") & iPages & "..."
     Endif
-    
-    If Lower(outfile) Like "*.pdf" Then
-      Try dpi = getdpi(sliderw.value, image.Load(scanfile).Width)
-      If Error Then 
-         Shell "convert " & Quote(scanfile) & " " & Quote(scanfile) To tmp
-         Try dpi = getdpi(sliderw.value, image.Load(scanfile).Width)
+
+    If Lower(sOutput) Like "*.pdf" Then
+      Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
+      If Error Then
+         Shell "convert " & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
+         Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
          If Error Then
-            message.error("Unable to load picture")
-            scanning = False
+            message.error("Unable to load picture!")
+            bIsScanning = False
             Return
          Endif
       Endif
-      cmdline = "convert " & " " & Quote(scanfile) & " " & ParseEffects() & " -compress jpeg -quality " & SliderQ.value & " -density " & dpi & " " & Quote(outfile)
+      cmdline = "convert " & " " & Quote(sScanfile) & " " & ParseEffects() & " -compress jpeg -quality " & slQuality.value & " -density " & dpi & " " & Quote(sOutput)
         Else
-      cmdline = "convert " & " " & Quote(scanfile) & " " & ParseEffects() & " -quality " & SliderQ.value & " " & Quote(outfile)
+      cmdline = "convert " & " " & Quote(sScanfile) & " " & ParseEffects() & " -quality " & slQuality.value & " " & Quote(sOutput)
     Endif
-    
+
     BigLabel.y = 0
     BigLabel.x = (VBox2.w Div 2) - (BigLabel.w Div 2)
-    BigLabel.text = "Please wait while applying effects..."
+    BigLabel.text = ("Please wait while applying effects...")
     BigLabel.Show
     FMain.mouse = mouse.wait
     FMain.enabled = False
-    'magickprocess = Shell cmdline For Read As "magickprocess" 
-    magickprocess = Shell cmdline For Input As "magickprocess" 
-    Print cmdline
+    hMagickProcess = Shell cmdline For Input As "MagickProcess"
+    If bDebug Then Debug cmdline
   Endif
-  scanning = False
+  bIsScanning = False
+
 End
 
+Public Function GetDPI(iRealWidth As Integer, iHRes As Integer) As Integer
 
-Public Function getdpi(realwidth As Integer, hres As Integer) As Integer
-  Dim inches As Float
-  inches = realwidth / 10 / 2.54
-  Return Round(hres / inches) 
-  'round 49 -> 50, etcetc
+  Dim fInches As Float
+
+  fInches = iRealWidth / 10 / 2.54
+  Return Round(iHRes / fInches)
+
 End
 
+Public Function ShowSaveDialog(Optional bMulti As Boolean = False) As Boolean
 
-Public Function ShowSaveDialog(Optional mp As Boolean = False) As Boolean
-   If mp Then 
-     Dialog.Filter = ["*.pdf", "PDF - Portable Document Format", "*.tiff", "TIFF - Tagged Image File Format"]
-      Else
-    Dialog.Filter = ["*.jpg", "JPEG", "*.png", "PNG", "*.tiff", "TIFF", "*.bmp", "BMP", "*.pdf", "PDF"]
-   Endif
-   Dialog.AutoExt = True
-   'Dialog.path = User.home
-   Return Dialog.SaveFile() 
+  If bMulti Then
+    Dialog.Filter = ["*.pdf", "PDF - Portable Document Format", "*.tiff", "TIFF - Tagged Image File Format"]
+  Else
+    Dialog.Filter = ["*.pdf", "PDF", "*.png", "PNG", "*.jpg", "JPEG", "*.tiff", "TIFF", "*.bmp", "BMP"]
+  Endif
+
+  Dialog.Title = "Choose a directory and specify name to save as"
+  Dialog.AutoExt = True
+  Dialog.Path = sSavePath & "/"
+  Return Dialog.SaveFile()
+
 End
 
+Public Sub btnSaveNow_Click()
 
+  Dim whatyousee, sOutputFile, cmdline, stderr As String
 
-Public Sub ButtonSaveNow_Click()
-  Dim outfile, cmdline, stderr As String
-  Dim whatyousee As String
   If ShowSaveDialog() Then Return
   Dialog.AutoExt = True
-  outfile = Dialog.Path
-  If Exist(effectfile, True) Then 
-    whatyousee = effectfile
-      Else
-    whatyousee = previewfile
+  sOutputFile = Dialog.Path
+  sSavePath = File.Dir(sOutputFile)
+  If bDebug Then Debug sSavePath
+
+  If Exist(sEffectFile, True) Then
+    whatyousee = sEffectFile
+  Else
+    whatyousee = sPreviewFile
   Endif
-  If Lower(outfile) Like "*.pdf" Then
-      cmdline = "convert " & " " & Quote(whatyousee) & " -compress jpeg -quality " & SliderQ.value & " " & Quote(outfile)
-        Else
-      cmdline = "convert " & " " & Quote(whatyousee) & " -quality " & SliderQ.value & " " & Quote(outfile)
+  If Lower(sOutputFile) Like "*.pdf" Then
+    cmdline = "convert " & " " & Quote(whatyousee) & " -compress jpeg -quality " & slQuality.value & " " & Quote(sOutputFile)
+  Else
+    cmdline = "convert " & " " & Quote(whatyousee) & " -quality " & slQuality.value & " " & Quote(sOutputFile)
   Endif
-    Me.mouse = Mouse.wait
-  'redirect stderr to stdout to catch errors
-  cmdline = cmdline & " 2>&1"
-  Print cmdline 
+
+  Me.Mouse = Mouse.Wait
+  ' redirect stderr to stdout to catch errors
+  cmdline &= " 2>&1"
   Shell cmdline To stderr
-  Me.mouse = Mouse.Normal
+  Me.Mouse = Mouse.Normal
   If stderr <> "" Then
-    Try message.Error(stderr)
+    Try Message.Error(stderr)
   Endif
+
 End
 
-Public lasterrorscanimage As String = ""
-Public lasterror As String = ""
+Public Sub ScanProcess_Error(stderr As String)
 
-Public Sub scanprocess_error(stderr As String)
-  Dim percent As String = ""
-  Dim percentint As Integer
-  Dim percentfloat As Float
-  
-  If stderr Like "*scanimage*" Then 
-    lasterrorscanimage = stderr
-      Else
-    lasterror = stderr
+  If stderr Like "*scanimage*" Then
+    sLastScanError = stderr
+  Else
+    sLastError = stderr
   Endif
-  
-  If stderr Like "*%*" Then
-    Try percent = Split(Split(stderr, " ", "", True)[1], "%", "", True)[0]
-    Try percentfloat = CFloat(percent)
-    If Not Error Then
-      'Print percentfloat
-      TextWaiting.hide
-      ProgressBar1.show
-      ProgressBar1.Value = percentfloat / 105
-    Endif
-  Endif
+  If bDebug Then Debug stderr
+
 End
 
-Public Sub magickprocess_kill()
+Public Sub MagickProcess_kill()
+
   Dim myfile As String
-  If ispreview Then 
-    myfile = effectfile
-      Else
-    myfile = outfile
+
+  If bIsPreview Then
+    myfile = sEffectFile
+  Else
+    myfile = sOutput
   Endif
   If Not (Lower(myfile) Like "*.pdf") Then
     Try PictureBox1.picture = picture.Load(myfile)
     If Error Then
-      Try message.error("Unable to load picture")
+      Try message.error("Unable to load picture!")
       FMain.enabled = True
       BigLabel.hide
       FMain.mouse = mouse.normal
       Return
     Endif
-      Else 'is a pdf file
-    mypdf = New PdfDocument
-    Try mypdf.Open(myfile)
-    If Not Error Then picturebox1.picture = mypdf[1].Image.Picture
-    Try mypdf.close
+  Else ' is a pdf file
+    hPdfDocument = New PdfDocument
+    Try hPdfDocument.Open(myfile)
+    If Not Error Then picturebox1.picture = hPdfDocument[1].Image.Picture
+    Try hPdfDocument.close
   Endif
-  If isMultipage Then BigLabel.text = "This is the page number " & pages
+  If bIsMultiPage Then BigLabel.text = "This is the page number " & iPages
   CorrectAreaAspect()
   BigLabel.hide
   FMain.enabled = True
   FMain.mouse = mouse.normal
+
 End
 
-
-
 Public Sub CorrectAreaAspect()
+
   Dim SAspect, DAspect As Float
   Dim Dw, Dh, Dx, Dy As Integer
-  
-  Daspect = OuterBox.w / OuterBox.h
 
+  Daspect = OuterBox.w / OuterBox.h
 
   Try Saspect = picturebox1.picture.w / picturebox1.picture.h
   If Error Then Saspect = (sliderw.MaxValue - sliderw.MinValue) / (sliderh.MaxValue - sliderh.MinValue)
-  If Saspect > Daspect Then 'fix width, calculate height
+  If Saspect > Daspect Then ' fix width, calculate height
     Dw = OuterBox.W
     Dh = CInt(OuterBox.w / SAspect)
     Dx = 0
@@ -856,76 +1180,73 @@ Public Sub CorrectAreaAspect()
     dy = 0
     dx = CInt((OuterBox.width - dw) / 2)
   Endif
-
-  If (Dw > 64) Then picturebox1.Move(Dx, Dy, Dw, Dh) 'don't touch (tmpw>64) or else heavy swap will occour!
+  If (Dw > 64) Then picturebox1.Move(Dx, Dy, Dw, Dh) ' don't touch this or else heavy swap will occur!
 
 End
 
-Public Sub ForceAspect(ByRef pbox As Picturebox, aspect As Float) 
+Public Sub ForceAspect(ByRef pBox As Picturebox, aspect As Float)
+
   Dim w, h, dw, dh As Integer
 
-  w = pbox.W
-  h = pbox.H
-  
-  If w > h Then 'enlarge h
+  w = pBox.W
+  h = pBox.H
+
+  If w > h Then ' enlarge h
     dw = w
     dh = CInt(w * aspect)
-      Else 'enlarge w
+  Else ' enlarge w
     dw = CInt(h * aspect)
     dh = h
   Endif
-
-  pbox.Resize(dw, dh)
+  pBox.Resize(dw, dh)
 
 End
-
 
 Public Sub HSplit1_resize()
+
   CorrectAreaAspect()
   SlidersToCropArea()
+
 End
 
+Public Sub CheckBorder()
 
-Public mousestartx As Integer = -1
-Public mousestarty As Integer = -1
+  If (sliderX.value + sliderW.value) > sliderW.MaxValue Then sliderW.value -= 1
+  If (sliderY.value + sliderH.value) > sliderH.MaxValue Then sliderH.value -= 1
 
-Public Sub checkborder()
-  If (sliderx.value + sliderw.value) > sliderw.MaxValue Then sliderw.value -= 1
-  If (slidery.value + sliderh.value) > sliderh.MaxValue Then sliderh.value -= 1
 End
-
-
-
 
 Public Sub HandleTopLeft_MouseDrag()
-  Dim kW, Kh As Float
-  Dim mousex, mousey As Integer
-  Dim prevX, prevY As Integer
-  mousex = Mouse.screenx - PictureBox1.screenx
-  mousey = Mouse.screeny - PictureBox1.screeny
-  prevX = sliderx.value
+
+  Dim kWidth, kHeight As Float
+  Dim mouseX, mouseY, prevX, prevY As Integer
+
+  mouseX = Mouse.screenX - PictureBox1.screenX
+  mouseY = Mouse.screenY - PictureBox1.screenY
+  prevX = sliderX.value
   prevY = sliderY.value
 
-  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w 
-  kH = (slidery.MaxValue - slidery.MinValue) / picturebox1.h
-  
-  sliderx.value = Mousex * kW
-  slidery.value = Mousey * kH
-  SliderW.value += (prevx - sliderx.value)
-  SliderH.value += (prevY - sliderY.value)
+  kWidth = (sliderX.MaxValue - sliderX.MinValue) / pictureBox1.Width
+  kHeight = (sliderY.MaxValue - sliderY.MinValue) / pictureBox1.Height
+
+  sliderX.value = MouseX * kWidth
+  sliderY.value = MouseY * kHeight
+  sliderW.value += (prevX - sliderX.Value)
+  sliderH.value += (prevY - sliderY.Value)
 
 End
 
 Public Sub HandleBottomLeft_MouseDrag()
+
   Dim kW, Kh As Float
-  Dim dy, prevX As Integer
-  Dim mousex, mousey As Integer
+  Dim mousex, mousey, dy, prevX As Integer
+
   mousex = Mouse.screenx - PictureBox1.screenx
   mousey = Mouse.screeny - PictureBox1.screeny
   prevX = sliderx.value
-  dy = croparea.screeny - picturebox1.screeny 
+  dy = croparea.screeny - picturebox1.screeny
 
-  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w 
+  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w
   kH = (slidery.MaxValue - slidery.MinValue) / picturebox1.h
 
   sliderh.value = (Mousey * kH) - (dy * kh)
@@ -935,18 +1256,17 @@ Public Sub HandleBottomLeft_MouseDrag()
 End
 
 Public Sub HandleTopRight_MouseDrag()
+
   Dim kW, Kh As Float
-  Dim mousex, mousey As Integer
-  Dim prevX, prevY As Integer
-  Dim dx As Integer
-  
+  Dim mousex, mousey, prevX, prevY, dx As Integer
+
   mousex = Mouse.screenx - PictureBox1.screenx
   mousey = Mouse.screeny - PictureBox1.screeny
   prevX = sliderx.value
   prevY = sliderY.value
-  dx = croparea.screenx - picturebox1.screenx 
-  
-  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w 
+  dx = croparea.screenx - picturebox1.screenx
+
+  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w
   kH = (slidery.MaxValue - slidery.MinValue) / picturebox1.h
 
   slidery.value = Mousey * kH
@@ -955,22 +1275,20 @@ Public Sub HandleTopRight_MouseDrag()
 
 End
 
-
 Public Sub HandleBottomRight_MouseDrag()
-  Dim kW, Kh As Float
-  Dim mousex, mousey As Integer
-  Dim prevX, prevY As Integer
-  Dim dx, dy As Integer
 
-  dx = croparea.screenx - picturebox1.screenx 
-  dy = croparea.screeny - picturebox1.screeny 
+  Dim kW, Kh As Float
+  Dim mousex, mousey, prevX, prevY, dx, dy As Integer
+
+  dx = croparea.screenx - picturebox1.screenx
+  dy = croparea.screeny - picturebox1.screeny
 
   mousex = Mouse.screenx - PictureBox1.screenx
   mousey = Mouse.screeny - PictureBox1.screeny
   prevX = sliderx.value
   prevY = sliderY.value
 
-  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w 
+  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w
   kH = (slidery.MaxValue - slidery.MinValue) / picturebox1.h
 
   sliderw.value = (Mousex * kw) - (dx * kw)
@@ -978,42 +1296,53 @@ Public Sub HandleBottomRight_MouseDrag()
 
 End
 
-
 Public Sub HandleCenter_MouseDrag()
+
   Dim kW, Kh As Float
   Dim mousex, mousey As Integer
-  Dim prevX, prevY As Integer
-  Dim prevH, prevW As Integer
+
   mousex = Mouse.screenx - PictureBox1.screenx
   mousey = Mouse.screeny - PictureBox1.screeny
-  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w 
+  kW = (sliderx.MaxValue - sliderx.MinValue) / picturebox1.w
   kH = (slidery.MaxValue - slidery.MinValue) / picturebox1.h
 
   sliderx.value = (Mousex * kW) - (sliderw.value / 2)
   slidery.value = (Mousey * kH) - (sliderh.value / 2)
+
 End
 
-
 Public Sub HandleTopLeft_MouseDown()
+
   Mouse.Move(Last.screenx, Last.screeny)
+
 End
 
 Public Sub HandleTopRight_MouseDown()
+
   Mouse.Move(Last.screenx + Last.w, Last.screeny)
+
 End
-' 
+
 Public Sub HandleBottomLeft_MouseDown()
+
   Mouse.Move(Last.screenx, Last.screeny + Last.h)
+
 End
 
 Public Sub HandleBottomRight_MouseDown()
+
   Mouse.Move(Last.screenx + Last.w, Last.screeny + Last.h)
+
 End
+
 Public Sub HandleCenter_MouseDown()
+
   Mouse.Move(Last.screenx + (Last.w Div 2), Last.screeny + (Last.h Div 2))
+
 End
 
 Public Sub detachsliders()
+
   Object.Detach(sliderx)
   Object.Detach(slidery)
   Object.Detach(sliderw)
@@ -1022,27 +1351,29 @@ Public Sub detachsliders()
   Object.Detach(spinboxy)
   Object.Detach(spinboxw)
   Object.Detach(spinboxh)
+
 End
 
 Public Sub attachsliders()
-  Object.Attach(sliderx, Me, "SlidersG")
-  Object.Attach(slidery, Me, "SlidersG")
-  Object.Attach(sliderw, Me, "SlidersG")
-  Object.Attach(sliderh, Me, "SlidersG")
-  Object.Attach(spinboxx, Me, "SpinboxG")
-  Object.Attach(spinboxy, Me, "SpinboxG")
-  Object.Attach(spinboxw, Me, "SpinboxG")
-  Object.Attach(spinboxh, Me, "SpinboxG")
+
+  Object.Attach(sliderx, Me, "SlidersArea")
+  Object.Attach(slidery, Me, "SlidersArea")
+  Object.Attach(sliderw, Me, "SlidersArea")
+  Object.Attach(sliderh, Me, "SlidersArea")
+  Object.Attach(spinboxx, Me, "SpinboxesArea")
+  Object.Attach(spinboxy, Me, "SpinboxesArea")
+  Object.Attach(spinboxw, Me, "SpinboxesArea")
+  Object.Attach(spinboxh, Me, "SpinboxesArea")
+
 End
 
-
-
 Public Sub SlidersToCropArea()
+
   Dim kW, kH As Float
   Dim dx, dy As Integer
 
-  kW = picturebox1.w / (sliderx.MaxValue - sliderx.MinValue) 
-  kH = picturebox1.h / (slidery.MaxValue - slidery.MinValue) 
+  kW = picturebox1.w / (sliderx.MaxValue - sliderx.MinValue)
+  kH = picturebox1.h / (slidery.MaxValue - slidery.MinValue)
   dx = picturebox1.screenx - OuterBox.screenx
   dy = picturebox1.screeny - OuterBox.screeny
 
@@ -1051,241 +1382,244 @@ Public Sub SlidersToCropArea()
 
   croparea.w = (sliderw.value * kw)
   croparea.h = (sliderh.value * kh)
+
 End
 
+Public Sub SlidersArea_Change()
 
-Public updatingslidersg As Boolean = False
-Public Sub SlidersG_Change()
-   Try Last.next.MinValue = Last.minvalue
-   Try Last.next.MaxValue = Last.maxvalue
-   Try Last.next.step = Last.step
-   Try Last.next.value = Last.value
-   If sliderw.value <= 2 Then sliderw.value = 2
-   If sliderh.value <= 2 Then sliderh.value = 2
-   checkborder()
+   Try Last.Next.MinValue = Last.minvalue
+   Try Last.Next.MaxValue = Last.Maxvalue
+   Try Last.Next.Step = Last.Step
+   Try Last.Next.Value = Last.Value
+   If sliderw.Value <= 2 Then sliderw.Value = 2
+   If sliderh.Value <= 2 Then sliderh.Value = 2
+   CheckBorder()
    SlidersToCropArea()
+
 End
 
+Public Sub SpinboxesArea_Change()
 
-Public Sub SpinBoxG_Change()
-  Last.minvalue = Last.previous.MinValue 
-  Last.maxvalue = Last.previous.MaxValue
-  Last.step = Last.previous.step 
-   Last.previous.value = Last.value 
+  Last.Minvalue = Last.Previous.MinValue
+  Last.Maxvalue = Last.Previous.MaxValue
+  Last.Step = Last.Previous.Step
+  Last.Previous.Value = Last.Value
   SlidersToCropArea()
-  checkborder()
+  CheckBorder()
+
 End
 
-Private SyncingSliders As Boolean = False
+Public Sub slQuality_Change()
 
+  bUpdatingQuality = True
+  Last.Next.MinValue = Last.Minvalue
+  Last.Next.MaxValue = Last.Maxvalue
+  Last.Next.Step = Last.Step
+  Last.Next.Value = Last.Value
+  bUpdatingQuality = False
 
-Public Sub SliderQ_Change()
-  updatingslidersg = True
-  Last.next.MinValue = Last.minvalue
-  Last.next.MaxValue = Last.maxvalue
-  Last.next.step = Last.step
-  Last.next.value = Last.value
-  updatingslidersg = False
 End
 
-Public Sub SpinBoxQ_Change()
-  If updatingslidersg Then Return
-  Last.previous.MinValue = Last.minvalue
-  Last.previous.MaxValue = Last.maxvalue
-  Last.previous.step = Last.step
-  Last.previous.value = Last.value
+Public Sub sbQuality_Change()
+
+  If bUpdatingQuality Then Return
+
+  Last.Previous.MinValue = Last.Minvalue
+  Last.Previous.MaxValue = Last.Maxvalue
+  Last.Previous.Step = Last.Step
+  Last.Previous.Value = Last.Value
+
 End
 
+Public Sub SlidersEffects_Change()
 
+  bUpdatingSlidersEffects = True
+  Last.Next.MinValue = Last.Minvalue
+  Last.Next.MaxValue = Last.Maxvalue
+  Last.Next.Step = Last.Step
+  Last.Next.Value = Last.Value
+  bUpdatingSlidersEffects = False
 
-Private updatingslidersF As Boolean = False
-Public Sub SlidersF_Change()
-  updatingslidersF = True
-  Last.next.MinValue = Last.minvalue
-  Last.next.MaxValue = Last.maxvalue
-  Last.next.step = Last.step
-  Last.next.value = Last.value
-  updatingslidersf = False
 End
 
-Public Sub SpinBoxesF_Change()
-  If updatingslidersF Then Return
-  Last.previous.MinValue = Last.minvalue
-  Last.previous.MaxValue = Last.maxvalue
-  Last.previous.step = Last.step
-  Last.previous.value = Last.value
+Public Sub SpinBoxesEffects_Change()
+
+  If bUpdatingSlidersEffects Then Return
+
+  Last.Previous.MinValue = Last.Minvalue
+  Last.Previous.MaxValue = Last.Maxvalue
+  Last.Previous.Step = Last.Step
+  Last.Previous.Value = Last.Value
+
 End
 
-Public Sub CheckboxesF_Click()
-  Try Last.next.enabled = Last.value
-  Try Last.next.next.enabled = Last.value
-  Try Last.next.next.next.enabled = Last.value
+Public Sub CheckboxesEffects_Click()
+
+  Try Last.Next.Enabled = Last.Value
+  Try Last.Next.Next.Enabled = Last.Value
+  Try Last.Next.Next.Next.Enabled = Last.Value
+
 End
 
-Public Sub ButtonScan2_Click()
-  Dim outfmt As String
-  Dim answer As Integer 
-  Dim opendir As String
-  Dim TiffOrPdf As Boolean = False
-  Dim multipagedestfile As String 
+Public Sub btnScanMulti_Click()
 
+  Dim sOutputFmt, sMultiPageDestFile As String
+  Dim bTiffOrPdf As Boolean
+
+  ' ask to select multipage file format
   Repeat
     If ShowSaveDialog(True) Then Return
-    multipagedestfile = Dialog.path
-    outfmt = Lower(File.Ext(multipagedestfile))
-    TiffOrPDF = ((outfmt = "pdf") Or (outfmt = "tiff"))
-    If Not TiffOrPdf Then Try message.Error("Please select PDF or TIFF!")
-  Until TiffOrPDF
 
-  pages = 0
-  ismultipage = True
-  HBox2.enabled = False
+    sMultiPageDestFile = Dialog.path
+    sOutputFmt = Lower(File.Ext(sMultiPageDestFile))
+    bTiffOrPDF = ((sOutputFmt = "pdf") Or (sOutputFmt = "tiff"))
+    If Not bTiffOrPdf Then Try message.Error("Please select PDF or TIFF format!")
+  Until bTiffOrPDF
+
+  iPages = 0
+  bIsMultiPage = True
+  HBox2.Enabled = False
   TabStrip1.Enabled = False
   Shell "rm " & "/tmp/gbscan.multipage.* -v"
-  FMain.mouse = mouse.wait
-  While message.Question(("You're creating a new multipage document named:\n " & multipagedestfile & "\n\nPlease, place the next page and hit " & ("Finish") & " " & "to terminate.\n\n" & pages & " pages scanned so far.\n"), ("Scan"), ("Finish")) = 1
-    pages += 1
-    destfile = "/tmp/gbscan.multipage." & makedigits(pages, 5) & ".tiff"
-    BigLabel.y = 0
-    BigLabel.x = (VBox2.w Div 2) - (BigLabel.w Div 2)
-    BigLabel.text = "Scanning page " & pages & "..."
+  FMain.Mouse = Mouse.Wait
+  While Message.Question(("You are creating a new multipage document named:\n " & sMultiPageDestFile & "\n\nPlease place the next page and hit " & ("Scan") & ",\nClick " & ("Finish") & " " & "to save all scanned pages.\n\n" & iPages & " page" & IIf(iPages = 1, " ", "s") & " scanned so far.\n"), ("Scan"), ("Finish")) = 1
+    Inc iPages
+    sDestinationFile = "/tmp/gbscan.multipage." & makedigits(iPages, 5) & ".tiff"
+    BigLabel.Y = 0
+    BigLabel.X = (VBox2.w Div 2) - (BigLabel.w Div 2)
+    BigLabel.Text = "Scanning page " & iPages
     BigLabel.Show
     Wait 0.2
-    ButtonScan_Click()
-    scanning = True
-    PictureBox1.Picture = picture["Black.png"]
+    btnScan_Click()
+    bIsScanning = True
+    PictureBox1.Picture = picture["black.png"]
     Wait
-    
-    While scanning
-      BigLabel.y = 0
-      BigLabel.x = (VBox2.w Div 2) - (BigLabel.w Div 2)
-      BigLabel.text = "Scanning page " & pages & "..."
+
+    While bIsScanning
+      BigLabel.Y = 0
+      BigLabel.X = (VBox2.w Div 2) - (BigLabel.w Div 2)
+      BigLabel.Text = "Scanning page " & iPages
       BigLabel.Show
       Wait 0.2
     Wend
   Wend
-  FMain.mouse = mouse.default
-  If pages > 0 Then 
-    'outfmt = Split(Comboformat.text, " ", "", True)[0]
-    joinpages("/tmp/gbscan.multipage.*", multipagedestfile)
-    Select Case message.Question(("Multipage document saved as:\n" & multipagedestfile), ("Open Folder"), ("Open File"), "OK")
-      Case 1 
-        Desktop.Open(Shell(File.Dir(multipagedestfile)))
+  FMain.Mouse = Mouse.Default
+  If iPages > 0 Then
+    JoinPages("/tmp/gbscan.multipage.*", sMultiPageDestFile)
+    Select Case Message.Question(("Multipage document saved as:\n" & sMultiPageDestFile), ("Open Folder"), ("Open File"), "OK")
+      Case 1
+        Desktop.Open(File.Dir(sMultiPageDestFile))
       Case 2
-        Desktop.open(Shell(multipagedestfile))
+        Desktop.open(sMultiPageDestFile)
     End Select
   Endif
 
-  ismultipage = False
-  HBox2.enabled = True
+  bIsMultiPage = False
+  HBox2.Enabled = True
   TabStrip1.Enabled = True
-  BigLabel.hide
-  Shell "rm " & "/tmp/gbscan.multipage.* -v"
+  BigLabel.Hide
+  Try Shell "rm " & "/tmp/gbscan.multipage.* -v"
+
 End
 
 Public Sub JoinPages(pages As String, multipagefile As String)
+
   Dim dpi As Integer
   Dim tmp As String
+
   FMain.mouse = mouse.wait
   BigLabel.text = ("Please, wait while joining pages...")
   Wait 0.05
-  Try dpi = getdpi(sliderw.value, image.Load(scanfile).Width)
+  Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
   If Error Then
-     Shell "convert " & Quote(scanfile) & " " & Quote(scanfile) To tmp
-     Try dpi = getdpi(sliderw.value, image.Load(scanfile).Width)
-     If Error Then 
-        message.Error("Unable to load picture")
-        Return
-      Endif
+    Shell "convert " & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
+    Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
+    If Error Then 
+      message.Error("Unable to load picture")
+      Return
+    Endif
   Endif
-
-  Debug "convert " & Quote(pages) & "* -compress jpeg -quality " & SliderQ.value & " -density " & dpi & " " & Quote(multipagefile)
-  Shell "convert " & Quote(pages) & "* -compress jpeg -quality " & SliderQ.value & " -density " & dpi & " " & Quote(multipagefile) Wait
+  Shell "convert " & Quote(pages) & "* -compress jpeg -quality " & slQuality.value & " -density " & dpi & " " & Quote(multipagefile) Wait
   FMain.mouse = mouse.Default
   BigLabel.text = ("Done.")
+
 End
 
+Public Sub btnTryFilters_Click()
 
-
-
-
-Public imageOriginal As New Image
-
-Public Sub ButtonPreview2_Click()
-  Dim img As New Image
   Label13.text = "Preparing Undo..."
   Wait
-  imageOriginal = picturebox1.Picture.image
+  hImageOriginal = picturebox1.Picture.image
   DoEffects(ByRef picturebox1.Picture)
-  ButtonPreview2.enabled = False
-  'ButtonSaveNow.Enabled = False
-  ButtonPreview3.enabled = True
+  btnTryFilters.enabled = False
+  btnUndo.enabled = True
+
 End
 
-
-
 Public Sub DoEffects(ByRef pic As Picture)
-  Dim img As New Image
-  Dim obj As Object
-  'Label13.text = "Transferring image..."
-  'Wait
-  'img = picturebox1.Picture.Image
-  Try Kill effectfile
+
+  Try Kill sEffectFile
   Label13.text = "Applying Effects..."
-  Wait
-  If ispreview Then 
-    Shell "convert " & Quote(previewfile) & " " & ParseEffects() & " " & Quote(effectfile) Wait
-      Else
-    Shell "convert " & Quote(scanfile) & " " & ParseEffects() & " " & Quote(effectfile) Wait
+
+  If bIsPreview Then
+    Shell "convert " & Quote(sPreviewFile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
+  Else
+    Shell "convert " & Quote(sScanfile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
   Endif
   Label13.text = "Transferring image..."
   Wait
-  Try pic = picture.Load(effectfile)
+  Try pic = picture.Load(sEffectFile)
   If Error Then 
     Try message.Error("Error reloading the picture", "OK")
-    ButtonPreview3_Click()
+    btnUndo_Click()
   Endif
   Label13.text = "Done."
   Wait
+
 End
 
+Public Sub btnUndo_Click()
 
-Public Sub ButtonPreview3_Click()
-  picturebox1.Picture = imageOriginal.picture
-  ButtonPreview3.enabled = False
-  ButtonPreview2.enabled = True
-  ButtonSaveNow.Enabled = True
-  Try Kill effectfile
+  picturebox1.Picture = hImageOriginal.Picture
+  btnUndo.enabled = False
+  btnTryFilters.enabled = True
+  btnSaveNow.Enabled = True
+  Try Kill sEffectFile
+
 End
 
-Public Sub ButtonCancel_Click()
+Public Sub btnCancel_Click()
+
   StopScan()
+
 End
 
-Public manuallystopped As Boolean = False
 Public Sub StopScan()
-  
-  'gestire scan in multipagina
-  manuallystopped = True
-  scanprocess.kill
-  scanning = False
+
+  bIsManuallyStopped = True
+  hScanProcess.kill
+  bIsScanning = False
+
 End
 
-Public Function Squote(S As String) As String
-  Return "'" & S & "'" 
-End
+Public Function sQuote(sText As String) As String
 
+  Return "'" & sText & "'"
+
+End
 
 Public Function ParseEffects() As String
+
   Dim effopt As String = ""
+
   If despeckle.value Then
     effopt &= " -despeckle "
   Endif
   If deskew.value Then
-    effopt &= " -deskew " & Squote(sliderq2.value)
+    effopt &= " -deskew " & sQuote(sliderq2.value)
   Endif
   If rotate.value Then
-    effopt &= " -rotate " & Squote(combobox2.text)
+    effopt &= " -rotate " & sQuote(combobox2.text)
   Endif
   If autogamma.value Then
     effopt &= " -auto-gamma "
@@ -1294,51 +1628,35 @@ Public Function ParseEffects() As String
     effopt &= " -auto-level "
   Endif
   If blackthreshold.value Then
-    effopt &= " -black-threshold " & Squote(sliderq4.value) & "%"
+    effopt &= " -black-threshold " & sQuote(sliderq4.value) & "%"
   Endif
   If whitethreshold.value Then
-    effopt &= " -white-threshold " & Squote(sliderq5.value) & "%"
+    effopt &= " -white-threshold " & sQuote(sliderq5.value) & "%"
   Endif
   If contraststretch.value Then
-    effopt &= " -contrast-stretch " & squote(sliderq6.value) & "%x" & squote(sliderq6.value) & "%"
+    effopt &= " -contrast-stretch " & sQuote(sliderq6.value) & "%x" & sQuote(sliderq6.value) & "%"
   Endif
   If posterize.value Then
-    effopt &= " -posterize " & Squote(sliderq7.value)
+    effopt &= " -posterize " & sQuote(sliderq7.value)
   Endif
   If blursharpen.value Then
     If sliderq3.value < 0 Then
-       effopt &= " -blur " & Squote(Abs(sliderq3.value))
-        Else
-       effopt &= " -sharpen " & Squote(Abs(sliderq3.value))
+      effopt &= " -blur " & sQuote(Abs(sliderq3.value))
+    Else
+      effopt &= " -sharpen " & sQuote(Abs(sliderq3.value))
     Endif
   Endif
 
   If checkboxf5.value Then
-     effopt &= " " & textbox1.text & " "
+    effopt &= " " & textbox1.text & " "
   Endif
   If checkboxf19.value Then
-     effopt &= " " & textbox2.text & " "
+    effopt &= " " & textbox2.text & " "
   Endif
   If checkboxf20.value Then
-     effopt &= " " & textbox3.text & " "
+    effopt &= " " & textbox3.text & " "
   Endif
 
   Return effopt & " "
-End
 
-
-Public Sub Form_Close()
-  Try Kill effectfile
-  Try Kill previewfile
-  Try Kill scanfile
-End
-
-Public Sub Form_Show()
-  CorrectAreaAspect()
-  SlidersToCropArea()
-End
-
-Public Sub Form_Resize()
-  CorrectAreaAspect()
-  SlidersToCropArea()
 End
