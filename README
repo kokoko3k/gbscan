@@ -38,7 +38,7 @@ scanimage
 
 Download and run:
 =================
-$ git clone https://github.com/cyberjunky/gbscan.git
+$ git clone https://github.com/kokoko3k/gbscan.git
 $ cd gbscan
 $ gbc3 -agtpm && gba3 && ./gbscan.gambas
 
