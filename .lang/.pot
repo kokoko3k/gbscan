@@ -1,0 +1,349 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2002-11-01 04:27+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: .project:1 FStartup.form:35
+msgid "gbScan"
+msgstr ""
+
+#: FMain.form:135
+msgid "Favorite Settings"
+msgstr ""
+
+#: FMain.form:153
+msgid "Scanner:"
+msgstr ""
+
+#: FMain.form:176
+msgid "Quality:"
+msgstr ""
+
+#: FMain.form:200
+msgid "Scan Area"
+msgstr ""
+
+#: FMain.form:217
+msgid "Start X"
+msgstr ""
+
+#: FMain.form:238
+msgid "Start Y"
+msgstr ""
+
+#: FMain.form:259
+msgid "Width"
+msgstr ""
+
+#: FMain.form:280
+msgid "Height"
+msgstr ""
+
+#: FMain.form:296
+msgid "All Settings"
+msgstr ""
+
+#: FMain.form:307
+msgid "Image Effects"
+msgstr ""
+
+#: FMain.form:334
+msgid "ImageMagick:"
+msgstr ""
+
+#: FMain.form:347
+msgid "reduce the speckles within an image."
+msgstr ""
+
+#: FMain.form:349
+msgid "Despekle"
+msgstr ""
+
+#: FMain.form:355
+msgid "straighten an image. A threshold of 40% works for most images."
+msgstr ""
+
+#: FMain.form:362
+msgid "Deskew (%)"
+msgstr ""
+
+#: FMain.form:381
+msgid "Apply Paeth image rotation (using shear operations) to the image."
+msgstr ""
+
+#: FMain.form:388
+msgid "Rotate"
+msgstr ""
+
+#: FMain.form:393
+msgid "-90"
+msgstr ""
+
+#: FMain.form:393
+msgid "90"
+msgstr ""
+
+#: FMain.form:393
+msgid "180"
+msgstr ""
+
+#: FMain.form:393
+msgid "270"
+msgstr ""
+
+#: FMain.form:404
+msgid "Automagically adjust gamma level of image."
+msgstr ""
+
+#: FMain.form:412
+msgid "Auto Gamma"
+msgstr ""
+
+#: FMain.form:418
+msgid "Automagically adjust color levels of image."
+msgstr ""
+
+#: FMain.form:426
+msgid "Auto level"
+msgstr ""
+
+#: FMain.form:432
+msgid ""
+"Force to black all pixels below the threshold while leaving all pixels at or "
+"above the threshold unchanged."
+msgstr ""
+
+#: FMain.form:439
+msgid "Black-Threshold"
+msgstr ""
+
+#: FMain.form:458
+msgid "Force all pixels above the threshold into White"
+msgstr ""
+
+#: FMain.form:465
+msgid "White-Threshold"
+msgstr ""
+
+#: FMain.form:484
+msgid ""
+"Increase the contrast in an image by stretching the range of intensity "
+"values."
+msgstr ""
+
+#: FMain.form:491
+msgid "Contrast Stretch"
+msgstr ""
+
+#: FMain.form:512
+msgid "\treduce the image to a limited number of color levels"
+msgstr ""
+
+#: FMain.form:519
+msgid "Posterize"
+msgstr ""
+
+#: FMain.form:546
+msgid ""
+"<0 = reduce image noise and reduce detail levels.\n"
+">0 = increase detail levels and image noise"
+msgstr ""
+
+#: FMain.form:553
+msgid "Blur/Sharpen"
+msgstr ""
+
+#: FMain.form:586
+msgid "Custom 1:"
+msgstr ""
+
+#: FMain.form:603
+msgid "Custom 2:"
+msgstr ""
+
+#: FMain.form:620
+msgid "Custom 3:"
+msgstr ""
+
+#: FMain.form:638
+msgid "Try filters"
+msgstr ""
+
+#: FMain.form:646
+msgid "Undo"
+msgstr ""
+
+#: FMain.form:768
+msgid "Waiting for scanner"
+msgstr ""
+
+#: FMain.form:781
+msgid "Stop"
+msgstr ""
+
+#: FMain.form:800
+msgid "Preview"
+msgstr ""
+
+#: FMain.form:808
+msgid "Save"
+msgstr ""
+
+#: FMain.form:815
+msgid "Scan and save"
+msgstr ""
+
+#: FMain.form:822
+msgid "Multipage"
+msgstr ""
+
+#: FMain.form:833
+msgid "PAGE 1"
+msgstr ""
+
+#: FMain.class:247
+msgid "No scanner(s) found, closing!"
+msgstr ""
+
+#: FMain.class:476
+msgid "Disabled"
+msgstr ""
+
+#: FMain.class:1024
+msgid "Scanning is cancelled!"
+msgstr ""
+
+#: FMain.class:1042
+msgid "Unable to load picture!"
+msgstr ""
+
+#: FMain.class:1066
+msgid "Loading page #"
+msgstr ""
+
+#: FMain.class:1087
+msgid "Please wait while applying effects..."
+msgstr ""
+
+#: FMain.class:1115
+msgid "Choose a directory and specify name to save as"
+msgstr ""
+
+#: FMain.class:1189
+msgid "This is the page number "
+msgstr ""
+
+#: FMain.class:1519
+msgid "You are creating a new multipage document named"
+msgstr ""
+
+#: FMain.class:1519
+msgid "Please place the next page and hit"
+msgstr ""
+
+#: FMain.class:1519
+msgid "Scan"
+msgstr ""
+
+#: FMain.class:1519
+msgid "Click"
+msgstr ""
+
+#: FMain.class:1519
+msgid "Finish"
+msgstr ""
+
+#: FMain.class:1519
+msgid "to save all scanned pages."
+msgstr ""
+
+#: FMain.class:1519
+msgid "pages"
+msgstr ""
+
+#: FMain.class:1519
+msgid "scanned so far."
+msgstr ""
+
+#: FMain.class:1524
+msgid "Scanning page"
+msgstr ""
+
+#: FMain.class:1543
+msgid "Multipage document saved as:"
+msgstr ""
+
+#: FMain.class:1543
+msgid "Open Folder"
+msgstr ""
+
+#: FMain.class:1543
+msgid "Open File"
+msgstr ""
+
+#: FMain.class:1565
+msgid "Please, wait while joining pages..."
+msgstr ""
+
+#: FMain.class:1572
+msgid "Unable to load picture"
+msgstr ""
+
+#: FMain.class:1578
+msgid "Done."
+msgstr ""
+
+#: FMain.class:1584
+msgid "Preparing Undo..."
+msgstr ""
+
+#: FMain.class:1596
+msgid "Applying Effects..."
+msgstr ""
+
+#: FMain.class:1603
+msgid "Transferring image..."
+msgstr ""
+
+#: FMain.class:1607
+msgid "Error reloading the picture"
+msgstr ""
+
+#: FMain.class:1607
+msgid "OK"
+msgstr ""
+
+#: FStartup.form:16
+msgid "Startup"
+msgstr ""
+
+#: FStartup.form:54
+msgid ""
+"<a href=https://github.com/kokoko3k/gbscan>Original code by Antonio Orefice</"
+"a>"
+msgstr ""
+
+#: FStartup.form:61
+msgid ""
+"<a href=https://github.com/cyberjunky/gbscan>Enhanced code by Ron Klinkien</"
+"a>"
+msgstr ""
+
+#: FStartup.class:28
+msgid "Cleanup temp files ..."
+msgstr ""
+
+#: FStartup.class:31
+msgid "Looking for scanner(s) ..."
+msgstr ""
+
+#: FStartup.class:34
+msgid "Starting program ..."
+msgstr ""

@@ -1,0 +1,341 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2002-11-01 04:27+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: .project:1 FStartup.form:35
+msgid "gbScan"
+msgstr "-"
+
+#: FMain.class:247
+msgid "No scanner(s) found, closing!"
+msgstr "Nessuno scanner trovato, uscita!"
+
+#: FMain.class:476
+msgid "Disabled"
+msgstr "Disabilitato"
+
+#: FMain.class:1024
+msgid "Scanning is cancelled!"
+msgstr "Processo interrotto!"
+
+#: FMain.class:1042
+msgid "Unable to load picture!"
+msgstr "Impossibile caricare l'immagine!"
+
+#: FMain.class:1066
+msgid "Loading page #"
+msgstr "Carico la pagina #"
+
+#: FMain.class:1087
+msgid "Please wait while applying effects..."
+msgstr "Attendere mentre applico gli effetti"
+
+#: FMain.class:1115
+msgid "Choose a directory and specify name to save as"
+msgstr "Scegli una cartella e specifica un nome con cui salvare"
+
+#: FMain.class:1189
+msgid "This is the page number "
+msgstr "Questa è la pagina numero"
+
+#: FMain.class:1519
+msgid "Click"
+msgstr "Click"
+
+#: FMain.class:1519
+msgid "Finish"
+msgstr "Finisci"
+
+#: FMain.class:1519
+msgid "Please place the next page and hit"
+msgstr "Prego posizionare un' altra pagina e premere"
+
+#: FMain.class:1519
+msgid "Scan"
+msgstr "Scannerizza"
+
+#: FMain.class:1519
+msgid "You are creating a new multipage document named"
+msgstr "Stai creando un nuovo documento multipagina chiamato"
+
+#: FMain.class:1519
+msgid "pages"
+msgstr "pagine"
+
+#: FMain.class:1519
+msgid "scanned so far."
+msgstr "scannerizzate fin'ora."
+
+#: FMain.class:1519
+msgid "to save all scanned pages."
+msgstr "per salvare tutte le pagine scannerizzate"
+
+#: FMain.class:1524
+msgid "Scanning page"
+msgstr "Scanerizzazione pagina"
+
+#: FMain.class:1543
+msgid "Multipage document saved as:"
+msgstr "Documento multipagina salvato come:"
+
+#: FMain.class:1543
+msgid "Open File"
+msgstr "Apri il file"
+
+#: FMain.class:1543
+msgid "Open Folder"
+msgstr "Apri la cartella"
+
+#: FMain.class:1565
+msgid "Please, wait while joining pages..."
+msgstr "Attendere mentre unisco le pagine..."
+
+#: FMain.class:1572
+msgid "Unable to load picture"
+msgstr "Impossibile caricare l'immagine"
+
+#: FMain.class:1578
+msgid "Done."
+msgstr "Fatto."
+
+#: FMain.class:1584
+msgid "Preparing Undo..."
+msgstr "Preparo l'annullamento..."
+
+#: FMain.class:1596
+msgid "Applying Effects..."
+msgstr "Applico gli effetti..."
+
+#: FMain.class:1603
+msgid "Transferring image..."
+msgstr "Trasferisco l'immagine..."
+
+#: FMain.class:1607
+msgid "Error reloading the picture"
+msgstr "Errore nel caricamento dell'immagine."
+
+#: FMain.class:1607
+msgid "OK"
+msgstr "OK"
+
+#: FMain.form:135
+msgid "Favorite Settings"
+msgstr "Impostazioni preferite"
+
+#: FMain.form:153
+msgid "Scanner:"
+msgstr "-"
+
+#: FMain.form:176
+msgid "Quality:"
+msgstr "Qualità:"
+
+#: FMain.form:200
+msgid "Scan Area"
+msgstr "Area di scannerizzazione"
+
+#: FMain.form:217
+msgid "Start X"
+msgstr "Origine X"
+
+#: FMain.form:238
+msgid "Start Y"
+msgstr "Origine Y"
+
+#: FMain.form:259
+msgid "Width"
+msgstr "Larghezza"
+
+#: FMain.form:280
+msgid "Height"
+msgstr "Altezza"
+
+#: FMain.form:296
+msgid "All Settings"
+msgstr "Tutte le impostazioni"
+
+#: FMain.form:307
+msgid "Image Effects"
+msgstr "Effetti immagine"
+
+#: FMain.form:334
+msgid "ImageMagick:"
+msgstr "-"
+
+#: FMain.form:347
+msgid "reduce the speckles within an image."
+msgstr "Riduce le macchie dovute alle interferenze nell'immagine."
+
+#: FMain.form:349
+msgid "Despekle"
+msgstr "Smacchia"
+
+#: FMain.form:355
+msgid "straighten an image. A threshold of 40% works for most images."
+msgstr "Raddrizza l'immagine, una soglia di 40% fovrebbe andar bene."
+
+#: FMain.form:362
+msgid "Deskew (%)"
+msgstr "Raddrizza (%)"
+
+#: FMain.form:381
+msgid "Apply Paeth image rotation (using shear operations) to the image."
+msgstr "Applica la rotazione di Paeth all'immagine."
+
+#: FMain.form:388
+msgid "Rotate"
+msgstr "Ruota"
+
+#: FMain.form:393
+msgid "-90"
+msgstr "-"
+
+#: FMain.form:393
+msgid "180"
+msgstr "-"
+
+#: FMain.form:393
+msgid "270"
+msgstr "-"
+
+#: FMain.form:393
+msgid "90"
+msgstr "-"
+
+#: FMain.form:404
+msgid "Automagically adjust gamma level of image."
+msgstr "Corregge magicamente il livello di gamma dell'immagine."
+
+#: FMain.form:412
+msgid "Auto Gamma"
+msgstr "Gamma automatica"
+
+#: FMain.form:418
+msgid "Automagically adjust color levels of image."
+msgstr "Corregge magicamente il livello di colore dell'immagine."
+
+#: FMain.form:426
+msgid "Auto level"
+msgstr "Livelli automatici"
+
+#: FMain.form:432
+msgid "Force to black all pixels below the threshold while leaving all pixels at or above the threshold unchanged."
+msgstr "Forza tutti i pixel sotto una soglia ad essere neri lasciando tutti i pixel maggiori o uguali la soglia inalterati."
+
+#: FMain.form:439
+msgid "Black-Threshold"
+msgstr "Soglia del nero"
+
+#: FMain.form:458
+msgid "Force all pixels above the threshold into White"
+msgstr "Forza tutti i pixel sopra una soglia ad essere bianchi lasciando tutti i pixel maggiori o uguali la soglia inalterati."
+
+#: FMain.form:465
+msgid "White-Threshold"
+msgstr "Soglia del bianco"
+
+#: FMain.form:484
+msgid "Increase the contrast in an image by stretching the range of intensity values."
+msgstr "Aumenta il contrasto dell'immagine aumentando l'intervallo del dei valori d'intensità."
+
+#: FMain.form:491
+msgid "Contrast Stretch"
+msgstr "Aumenta contrasto"
+
+#: FMain.form:512
+msgid "\treduce the image to a limited number of color levels"
+msgstr "\triduce l'immagine a un numero limitato di livelli di colore"
+
+#: FMain.form:519
+msgid "Posterize"
+msgstr "Posterizzazione"
+
+#: FMain.form:546
+msgid "<0 = reduce image noise and reduce detail levels.\n>0 = increase detail levels and image noise"
+msgstr "<0 = riduce il rumore dell'immagine ed il livello di dettaglio.\n>0 = aumenta il livello di dettagli e il rumore dell'immagine"
+
+#: FMain.form:553
+msgid "Blur/Sharpen"
+msgstr "Sfoca/Affila"
+
+#: FMain.form:586
+msgid "Custom 1:"
+msgstr "-"
+
+#: FMain.form:603
+msgid "Custom 2:"
+msgstr "-"
+
+#: FMain.form:620
+msgid "Custom 3:"
+msgstr "-"
+
+#: FMain.form:638
+msgid "Try filters"
+msgstr "Prova i filtri"
+
+#: FMain.form:646
+msgid "Undo"
+msgstr "Annulla"
+
+#: FMain.form:768
+msgid "Waiting for scanner"
+msgstr "In attesa dello scanner"
+
+#: FMain.form:781
+msgid "Stop"
+msgstr "Stop"
+
+#: FMain.form:800
+msgid "Preview"
+msgstr "Anteprima"
+
+#: FMain.form:808
+msgid "Save"
+msgstr "Salva"
+
+#: FMain.form:815
+msgid "Scan and save"
+msgstr "Scannerizza e salva"
+
+#: FMain.form:822
+msgid "Multipage"
+msgstr "Multi-pagina"
+
+#: FMain.form:833
+msgid "PAGE 1"
+msgstr "Pagina 1"
+
+#: FStartup.class:28
+msgid "Cleanup temp files ..."
+msgstr "Pulizia dei file temporanei..."
+
+#: FStartup.class:31
+msgid "Looking for scanner(s) ..."
+msgstr "Cerco lo scanner"
+
+#: FStartup.class:34
+msgid "Starting program ..."
+msgstr "Avvio del programma..."
+
+#: FStartup.form:16
+msgid "Startup"
+msgstr "Avvio"
+
+#: FStartup.form:54
+msgid "<a href=https://github.com/kokoko3k/gbscan>Original code by Antonio Orefice</a>"
+msgstr "-"
+
+#: FStartup.form:61
+msgid "<a href=https://github.com/cyberjunky/gbscan>Enhanced code by Ron Klinkien</a>"
+msgstr "-"
+
