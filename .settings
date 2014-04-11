@@ -79,11 +79,12 @@ Geometry=[52,0,210,210]
 
 [OpenFile]
 File[1]=".src/FMain.form"
-File[2]=".src/FMain.class:314.7"
+File[2]=".src/FMain.class:1644.40"
+Active=3
 File[3]="README:40.39"
-Active=4
 File[4]="whitepage.png"
-Count=4
+File[5]=".src/FStartup.form"
+Count=5
 
 [Watches]
 Count=0

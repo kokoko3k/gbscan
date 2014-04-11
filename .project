@@ -14,5 +14,7 @@ Component=gb.image.imlib
 Component=gb.pdf
 Component=gb.qt4.ext
 TabSize=2
+Translate=1
+Language=en_GB
 KeepDebugInfo=0
 Packager=1

@@ -473,7 +473,7 @@ Public Sub MakeCombo(option As String, description As String)
     oCheckBox.Value = False
     oCheckBox.Enabled = False
     oLabel = New Label(oParent)
-    oLabel.Text = "Disabled"
+    oLabel.Text = ("Disabled")
     oLabel.Font.bold = True
     oLabel.Foreground = Color.Red
     oLabel.Autoresize = True
@@ -1021,7 +1021,7 @@ Public Sub ScanProcess_Kill()
 
   If bIsManuallyStopped Then
     bIsManuallyStopped = False
-    Try Message.info("Scanning is cancelled!")
+    Try Message.info(("Scanning is cancelled!"))
     ProgressBar1.Value = 1
     btnCancel.hide
     BottomBox.hide
@@ -1039,7 +1039,7 @@ Public Sub ScanProcess_Kill()
       Shell "convert " & Quote(sPreviewFile) & " " & Quote(sPreviewFile) To tmp
       Try PictureBox1.picture = picture.Load(sPreviewFile)
       If Error Then
-        message.error("Unable to load picture!")
+        message.error(("Unable to load picture!"))
         bIsScanning = False
         Return
       Endif
@@ -1072,7 +1072,7 @@ Public Sub ScanProcess_Kill()
          Shell "convert " & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
          Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
          If Error Then
-            message.error("Unable to load picture!")
+            message.error(("Unable to load picture!"))
             bIsScanning = False
             Return
          Endif
@@ -1112,7 +1112,7 @@ Public Function ShowSaveDialog(Optional bMulti As Boolean = False) As Boolean
     Dialog.Filter = ["*.pdf", "PDF", "*.png", "PNG", "*.jpg", "JPEG", "*.tiff", "TIFF", "*.bmp", "BMP"]
   Endif
 
-  Dialog.Title = "Choose a directory and specify name to save as"
+  Dialog.Title = (("Choose a directory and specify name to save as"))
   Dialog.AutoExt = True
   Dialog.Path = sSavePath & "/"
   Return Dialog.SaveFile()
@@ -1186,7 +1186,7 @@ Public Sub MagickProcess_kill()
     If Not Error Then picturebox1.picture = hPdfDocument[1].Image.Picture
     Try hPdfDocument.close
   Endif
-  If bIsMultiPage Then BigLabel.text = "This is the page number " & iPages
+  If bIsMultiPage Then BigLabel.text = ("This is the page number ") & iPages
   CorrectAreaAspect()
   BigLabel.hide
   FMain.enabled = True
@@ -1516,12 +1516,12 @@ Public Sub btnScanMulti_Click()
   TabStrip1.Enabled = False
   Shell "rm " & "/tmp/gbscan.multipage.* -v"
   FMain.Mouse = Mouse.Wait
-  While Message.Question(("You are creating a new multipage document named:\n " & sMultiPageDestFile & "\n\nPlease place the next page and hit " & ("Scan") & ",\nClick " & ("Finish") & " " & "to save all scanned pages.\n\n" & iPages & " page" & IIf(iPages = 1, " ", "s") & " scanned so far.\n"), ("Scan"), ("Finish")) = 1
+  While Message.Question((("You are creating a new multipage document named") & ":\n " & sMultiPageDestFile & "\n\n" & ("Please place the next page and hit") & " " & ("Scan") & ",\n" & ("Click") & " " & ("Finish") & " " & ("to save all scanned pages.") & "\n\n" & iPages & " " & ("pages") & " " & ("scanned so far.") & "\n"), ("Scan"), ("Finish")) = 1
     Inc iPages
     sDestinationFile = "/tmp/gbscan.multipage." & makedigits(iPages, 5) & ".tiff"
     BigLabel.Y = 0
     BigLabel.X = (VBox2.w Div 2) - (BigLabel.w Div 2)
-    BigLabel.Text = "Scanning page " & iPages
+    BigLabel.Text = ("Scanning page") & " " & iPages
     BigLabel.Show
     Wait 0.2
     btnScan_Click()
@@ -1532,7 +1532,7 @@ Public Sub btnScanMulti_Click()
     While bIsScanning
       BigLabel.Y = 0
       BigLabel.X = (VBox2.w Div 2) - (BigLabel.w Div 2)
-      BigLabel.Text = "Scanning page " & iPages
+      BigLabel.Text = ("Scanning page") & " " & iPages
       BigLabel.Show
       Wait 0.2
     Wend
@@ -1540,7 +1540,7 @@ Public Sub btnScanMulti_Click()
   FMain.Mouse = Mouse.Default
   If iPages > 0 Then
     JoinPages("/tmp/gbscan.multipage.*", sMultiPageDestFile)
-    Select Case Message.Question(("Multipage document saved as:\n" & sMultiPageDestFile), ("Open Folder"), ("Open File"), "OK")
+    Select Case Message.Question((("Multipage document saved as:") & "\n" & sMultiPageDestFile), ("Open Folder"), ("Open File"), "OK")
       Case 1
         Desktop.Open(File.Dir(sMultiPageDestFile))
       Case 2
@@ -1569,7 +1569,7 @@ Public Sub JoinPages(pages As String, multipagefile As String)
     Shell "convert " & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
     Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
     If Error Then 
-      message.Error("Unable to load picture")
+      message.Error(("Unable to load picture"))
       Return
     Endif
   Endif
@@ -1581,7 +1581,7 @@ End
 
 Public Sub btnTryFilters_Click()
 
-  Label13.text = "Preparing Undo..."
+  Label13.text = ("Preparing Undo...")
   Wait
   hImageOriginal = picturebox1.Picture.image
   DoEffects(ByRef picturebox1.Picture)
@@ -1593,21 +1593,21 @@ End
 Public Sub DoEffects(ByRef pic As Picture)
 
   Try Kill sEffectFile
-  Label13.text = "Applying Effects..."
+  Label13.text = ("Applying Effects...")
 
   If bIsPreview Then
     Shell "convert " & Quote(sPreviewFile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
   Else
     Shell "convert " & Quote(sScanfile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
   Endif
-  Label13.text = "Transferring image..."
+  Label13.text = ("Transferring image...")
   Wait
   Try pic = picture.Load(sEffectFile)
   If Error Then 
-    Try message.Error("Error reloading the picture", "OK")
+    Try message.Error(("Error reloading the picture"), ("OK"))
     btnUndo_Click()
   Endif
-  Label13.text = "Done."
+  Label13.text = ("Done.")
   Wait
 
 End

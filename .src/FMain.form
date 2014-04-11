@@ -285,7 +285,7 @@
         }
         { HBox18 HBox
           MoveScaled(1,37,48,3.7143)
-          ToolTip = ("Force all pixels above the threshold into Black")
+          ToolTip = ("Force all pixels above the threshold into White")
           Spacing = True
           Padding = 4
           { whitethreshold CheckBox CheckboxesEffects
