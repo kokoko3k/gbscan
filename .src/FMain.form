@@ -532,12 +532,13 @@
         }
       }
       { Separator1 Separator
-        MoveScaled(1,76,56,2)
+        MoveScaled(1,76,56,1)
       }
       { BottomBox HBox
         MoveScaled(2,79,54,4)
         Visible = False
         Spacing = True
+        Margin = True
         Padding = 4
         { txtWaiting TextLabel
           MoveScaled(-4,1,28,3)

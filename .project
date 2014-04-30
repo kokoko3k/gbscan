@@ -1,8 +1,8 @@
 # Gambas Project File 3.0
-# Compiled with Gambas 3.5.2
+# Compiled with Gambas 3.5.3
 Title=gbScan
 Startup=FMain
-Version=0.0.31
+Version=0.0.32
 Component=gb.image
 Component=gb.qt4
 Component=gb.form

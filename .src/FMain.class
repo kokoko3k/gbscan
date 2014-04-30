@@ -125,6 +125,11 @@ Public Sub SaveEnabledSettings()
     Endif
   Next
 
+  'Save custom effects strings as well
+  SetConfigValue("CustomEffect/1", textbox1.Text)
+  SetConfigValue("CustomEffect/2", textbox2.Text)
+  SetConfigValue("CustomEffect/3", textbox3.Text)
+
 End
 
 Public Sub Form_Show()
@@ -175,6 +180,11 @@ Public Sub GetConfig()
     slQuality.Value = GetConfigValue("Scan/Quality", 90)
     sSavePath = GetConfigValue("Save/Path", sBaseDir)
     bDebug = GetConfigValue("Program/Debug", False)
+    textbox1.text = GetConfigValue("CustomEffect/1", "")
+    textbox2.text = GetConfigValue("CustomEffect/2", "")
+    textbox3.text = GetConfigValue("CustomEffect/3", "")
+
+
   Endif
 
 End

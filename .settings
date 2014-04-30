@@ -2,8 +2,7 @@
 Count=0
 
 [DebugWindow]
-Count=1
-DebugWindow[1]="myobj"
+Count=0
 
 [DebugWindow/Font]
 Geometry=[52,0,210,210]
@@ -79,9 +78,9 @@ Geometry=[52,0,210,210]
 
 [OpenFile]
 File[1]=".src/FMain.form"
-File[2]=".src/FMain.class:1644.40"
+File[2]=".src/FMain.class:184.50"
 Active=3
-File[3]="README:40.39"
+File[3]="README:43.0"
 File[4]="whitepage.png"
 File[5]=".src/FStartup.form"
 Count=5
