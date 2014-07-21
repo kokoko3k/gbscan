@@ -21,7 +21,7 @@
       Text = ("gbScan")
     }
     { lblVersion Label
-      MoveScaled(17,2,7,3)
+      MoveScaled(17,1,7,3)
       Alignment = Align.Center
     }
     { PictureBox1 PictureBox

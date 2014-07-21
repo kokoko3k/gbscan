@@ -15,115 +15,115 @@ msgstr ""
 msgid "gbScan"
 msgstr "-"
 
-#: FMain.class:247
+#: FMain.class:258
 msgid "No scanner(s) found, closing!"
 msgstr "Nessuno scanner trovato, uscita!"
 
-#: FMain.class:476
+#: FMain.class:487
 msgid "Disabled"
 msgstr "Disabilitato"
 
-#: FMain.class:1024
+#: FMain.class:1035
 msgid "Scanning is cancelled!"
 msgstr "Processo interrotto!"
 
-#: FMain.class:1042
+#: FMain.class:1053
 msgid "Unable to load picture!"
 msgstr "Impossibile caricare l'immagine!"
 
-#: FMain.class:1066
+#: FMain.class:1077
 msgid "Loading page #"
 msgstr "Carico la pagina #"
 
-#: FMain.class:1087
+#: FMain.class:1098
 msgid "Please wait while applying effects..."
 msgstr "Attendere mentre applico gli effetti"
 
-#: FMain.class:1115
+#: FMain.class:1126
 msgid "Choose a directory and specify name to save as"
 msgstr "Scegli una cartella e specifica un nome con cui salvare"
 
-#: FMain.class:1189
+#: FMain.class:1200
 msgid "This is the page number "
 msgstr "Questa è la pagina numero"
 
-#: FMain.class:1519
+#: FMain.class:1530
 msgid "Click"
 msgstr "Click"
 
-#: FMain.class:1519
+#: FMain.class:1530
 msgid "Finish"
 msgstr "Finisci"
 
-#: FMain.class:1519
+#: FMain.class:1530
 msgid "Please place the next page and hit"
 msgstr "Prego posizionare un' altra pagina e premere"
 
-#: FMain.class:1519
+#: FMain.class:1530
 msgid "Scan"
 msgstr "Scannerizza"
 
-#: FMain.class:1519
+#: FMain.class:1530
 msgid "You are creating a new multipage document named"
 msgstr "Stai creando un nuovo documento multipagina chiamato"
 
-#: FMain.class:1519
+#: FMain.class:1530
 msgid "pages"
 msgstr "pagine"
 
-#: FMain.class:1519
+#: FMain.class:1530
 msgid "scanned so far."
 msgstr "scannerizzate fin'ora."
 
-#: FMain.class:1519
+#: FMain.class:1530
 msgid "to save all scanned pages."
 msgstr "per salvare tutte le pagine scannerizzate"
 
-#: FMain.class:1524
+#: FMain.class:1535
 msgid "Scanning page"
 msgstr "Scanerizzazione pagina"
 
-#: FMain.class:1543
+#: FMain.class:1561
 msgid "Multipage document saved as:"
 msgstr "Documento multipagina salvato come:"
 
-#: FMain.class:1543
+#: FMain.class:1561
 msgid "Open File"
 msgstr "Apri il file"
 
-#: FMain.class:1543
+#: FMain.class:1561
 msgid "Open Folder"
 msgstr "Apri la cartella"
 
-#: FMain.class:1565
+#: FMain.class:1583
 msgid "Please, wait while joining pages..."
 msgstr "Attendere mentre unisco le pagine..."
 
-#: FMain.class:1572
+#: FMain.class:1590
 msgid "Unable to load picture"
 msgstr "Impossibile caricare l'immagine"
 
-#: FMain.class:1578
+#: FMain.class:1596
 msgid "Done."
 msgstr "Fatto."
 
-#: FMain.class:1584
+#: FMain.class:1602
 msgid "Preparing Undo..."
 msgstr "Preparo l'annullamento..."
 
-#: FMain.class:1596
+#: FMain.class:1614
 msgid "Applying Effects..."
 msgstr "Applico gli effetti..."
 
-#: FMain.class:1603
+#: FMain.class:1621
 msgid "Transferring image..."
 msgstr "Trasferisco l'immagine..."
 
-#: FMain.class:1607
+#: FMain.class:1625
 msgid "Error reloading the picture"
 msgstr "Errore nel caricamento dell'immagine."
 
-#: FMain.class:1607
+#: FMain.class:1625
 msgid "OK"
 msgstr "OK"
 
@@ -260,8 +260,12 @@ msgid "Posterize"
 msgstr "Posterizzazione"
 
 #: FMain.form:546
-msgid "<0 = reduce image noise and reduce detail levels.\n>0 = increase detail levels and image noise"
-msgstr "<0 = riduce il rumore dell'immagine ed il livello di dettaglio.\n>0 = aumenta il livello di dettagli e il rumore dell'immagine"
+msgid ""
+"<0 = reduce image noise and reduce detail levels.\n"
+">0 = increase detail levels and image noise"
+msgstr ""
+"<0 = riduce il rumore dell'immagine ed il livello di dettaglio.\n"
+">0 = aumenta il livello di dettagli e il rumore dell'immagine"
 
 #: FMain.form:553
 msgid "Blur/Sharpen"
@@ -287,31 +291,31 @@ msgstr "Prova i filtri"
 msgid "Undo"
 msgstr "Annulla"
 
-#: FMain.form:768
+#: FMain.form:769
 msgid "Waiting for scanner"
 msgstr "In attesa dello scanner"
 
-#: FMain.form:781
+#: FMain.form:782
 msgid "Stop"
 msgstr "Stop"
 
-#: FMain.form:800
+#: FMain.form:801
 msgid "Preview"
 msgstr "Anteprima"
 
-#: FMain.form:808
+#: FMain.form:809
 msgid "Save"
 msgstr "Salva"
 
-#: FMain.form:815
+#: FMain.form:816
 msgid "Scan and save"
 msgstr "Scannerizza e salva"
 
-#: FMain.form:822
+#: FMain.form:823
 msgid "Multipage"
 msgstr "Multi-pagina"
 
-#: FMain.form:833
+#: FMain.form:834
 msgid "PAGE 1"
 msgstr "Pagina 1"
 
@@ -338,4 +342,3 @@ msgstr "-"
 #: FStartup.form:61
 msgid "<a href=https://github.com/cyberjunky/gbscan>Enhanced code by Ron Klinkien</a>"
 msgstr "-"
-

@@ -5,7 +5,7 @@ Public iWindowX As Integer
 Public iWindowY As Integer
 Public iWindowHeight As Integer
 Public iWindowWidth As Integer
-Public sProgramVersion As String = "0.01"
+Public sProgramVersion As String = Application.version
 Public sScanners As String
 Public sPreviewFile As String = "/dev/shm/out.tiff"
 Public sScanFile As String = "/dev/shm/out_s.tiff"
@@ -1099,10 +1099,12 @@ Public Sub ScanProcess_Kill()
     FMain.mouse = mouse.wait
     FMain.enabled = False
     hMagickProcess = Shell cmdline For Input As "MagickProcess"
+    While hMagickProcess.state = Process.Running
+      Wait 0.1
+    Wend
     If bDebug Then Debug cmdline
   Endif
   bIsScanning = False
-
 End
 
 Public Function GetDPI(iRealWidth As Integer, iHRes As Integer) As Integer
@@ -1539,13 +1541,16 @@ Public Sub btnScanMulti_Click()
     PictureBox1.Picture = picture["black.png"]
     Wait
 
+
+    BigLabel.Y = 0
+    BigLabel.X = (VBox2.w Div 2) - (BigLabel.w Div 2)
+    BigLabel.Text = ("Scanning page") & " " & iPages
+    BigLabel.Show
+
     While bIsScanning
-      BigLabel.Y = 0
-      BigLabel.X = (VBox2.w Div 2) - (BigLabel.w Div 2)
-      BigLabel.Text = ("Scanning page") & " " & iPages
-      BigLabel.Show
       Wait 0.2
     Wend
+
   Wend
   FMain.Mouse = Mouse.Default
   If iPages > 0 Then
@@ -1601,7 +1606,6 @@ Public Sub btnTryFilters_Click()
 End
 
 Public Sub DoEffects(ByRef pic As Picture)
-
   Try Kill sEffectFile
   Label13.text = ("Applying Effects...")
 
@@ -1619,7 +1623,6 @@ Public Sub DoEffects(ByRef pic As Picture)
   Endif
   Label13.text = ("Done.")
   Wait
-
 End
 
 Public Sub btnUndo_Click()

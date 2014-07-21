@@ -232,91 +232,91 @@ msgstr ""
 msgid "Please wait while applying effects..."
 msgstr ""
 
-#: FMain.class:1125
+#: FMain.class:1127
 msgid "Choose a directory and specify name to save as"
 msgstr ""
 
-#: FMain.class:1199
+#: FMain.class:1201
 msgid "This is the page number "
 msgstr ""
 
-#: FMain.class:1529
+#: FMain.class:1531
 msgid "You are creating a new multipage document named"
 msgstr ""
 
-#: FMain.class:1529
+#: FMain.class:1531
 msgid "Please place the next page and hit"
 msgstr ""
 
-#: FMain.class:1529
+#: FMain.class:1531
 msgid "Scan"
 msgstr ""
 
-#: FMain.class:1529
+#: FMain.class:1531
 msgid "Click"
 msgstr ""
 
-#: FMain.class:1529
+#: FMain.class:1531
 msgid "Finish"
 msgstr ""
 
-#: FMain.class:1529
+#: FMain.class:1531
 msgid "to save all scanned pages."
 msgstr ""
 
-#: FMain.class:1529
+#: FMain.class:1531
 msgid "pages"
 msgstr ""
 
-#: FMain.class:1529
+#: FMain.class:1531
 msgid "scanned so far."
 msgstr ""
 
-#: FMain.class:1534
+#: FMain.class:1536
 msgid "Scanning page"
 msgstr ""
 
-#: FMain.class:1553
+#: FMain.class:1558
 msgid "Multipage document saved as:"
 msgstr ""
 
-#: FMain.class:1553
+#: FMain.class:1558
 msgid "Open Folder"
 msgstr ""
 
-#: FMain.class:1553
+#: FMain.class:1558
 msgid "Open File"
 msgstr ""
 
-#: FMain.class:1575
+#: FMain.class:1580
 msgid "Please, wait while joining pages..."
 msgstr ""
 
-#: FMain.class:1582
+#: FMain.class:1587
 msgid "Unable to load picture"
 msgstr ""
 
-#: FMain.class:1588
+#: FMain.class:1593
 msgid "Done."
 msgstr ""
 
-#: FMain.class:1594
+#: FMain.class:1599
 msgid "Preparing Undo..."
 msgstr ""
 
-#: FMain.class:1606
+#: FMain.class:1610
 msgid "Applying Effects..."
 msgstr ""
 
-#: FMain.class:1613
+#: FMain.class:1617
 msgid "Transferring image..."
 msgstr ""
 
-#: FMain.class:1617
+#: FMain.class:1621
 msgid "Error reloading the picture"
 msgstr ""
 
-#: FMain.class:1617
+#: FMain.class:1621
 msgid "OK"
 msgstr ""
 
