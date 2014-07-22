@@ -41,11 +41,13 @@ Public oLabel As Label
 Public bDebug As Boolean
 Public sSavePath As String
 
+Public memlimit As String
+
 '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ' open form, init program
 '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Public Sub Form_Open()
-
+  Dim tRam As String
   ' open splash screen
   FStartup.ShowModal
 
@@ -57,6 +59,23 @@ Public Sub Form_Open()
 
   ' restore saved position and size
   Me.Move(iWindowX, iWindowY, iWindowWidth, iWindowHeight)
+
+  ' get system ram and set im limits
+  Try tRam = File.Load("/proc/meminfo")
+  If Error Then
+    Debug "could not get total system Ram (!?), setting hardcoded limits."
+    memlimit = " -limit memory 1024MiB -limit map 2048MiB "
+      Else
+    tRam = Split(tRam, "\n")[0]
+    tRam = Split(tRam, " ", "", True)[1]
+    
+    Try memlimit = " -limit memory " & CInt((CInt(tRam) / 3 / 1024)) & "MiB" & " -limit map " & CInt((CInt(tRam) / 1.5 / 1024)) & "MiB "
+    
+    If Error Then
+      Debug "could not get total system Ram (!?), setting hardcoded limits."
+      memlimit = " -limit memory 1024MiB -limit map 2048MiB "
+    Endif
+  Endif
 
 End
 
@@ -1046,7 +1065,7 @@ Public Sub ScanProcess_Kill()
   If bIsPreview Then
     Try PictureBox1.picture = picture.Load(sPreviewFile)
     If Error Then
-      Shell "convert " & Quote(sPreviewFile) & " " & Quote(sPreviewFile) To tmp
+      Shell "convert " & memlimit & Quote(sPreviewFile) & " " & Quote(sPreviewFile) To tmp
       Try PictureBox1.picture = picture.Load(sPreviewFile)
       If Error Then
         message.error(("Unable to load picture!"))
@@ -1079,7 +1098,7 @@ Public Sub ScanProcess_Kill()
     If Lower(sOutput) Like "*.pdf" Then
       Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
       If Error Then
-         Shell "convert " & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
+         Shell "convert " & memlimit & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
          Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
          If Error Then
             message.error(("Unable to load picture!"))
@@ -1087,17 +1106,16 @@ Public Sub ScanProcess_Kill()
             Return
          Endif
       Endif
-      cmdline = "convert " & " " & Quote(sScanfile) & " " & ParseEffects() & " -compress jpeg -quality " & slQuality.value & " -density " & dpi & " " & Quote(sOutput)
+      cmdline = "convert " & memlimit & Quote(sScanfile) & " " & ParseEffects() & " -compress jpeg -quality " & slQuality.value & " -density " & dpi & " " & Quote(sOutput)
         Else
-      cmdline = "convert " & " " & Quote(sScanfile) & " " & ParseEffects() & " -quality " & slQuality.value & " " & Quote(sOutput)
+      cmdline = "convert " & memlimit & Quote(sScanfile) & " " & ParseEffects() & " -quality " & slQuality.value & " " & Quote(sOutput)
     Endif
-
+    FMain.mouse = mouse.wait
     BigLabel.y = 0
     BigLabel.x = (VBox2.w Div 2) - (BigLabel.w Div 2)
     BigLabel.text = ("Please wait while applying effects...")
     BigLabel.Show
-    FMain.mouse = mouse.wait
-    FMain.enabled = False
+    tabstrip1.enabled = False
     hMagickProcess = Shell cmdline For Input As "MagickProcess"
     While hMagickProcess.state = Process.Running
       Wait 0.1
@@ -1147,9 +1165,9 @@ Public Sub btnSaveNow_Click()
     whatyousee = sPreviewFile
   Endif
   If Lower(sOutputFile) Like "*.pdf" Then
-    cmdline = "convert " & " " & Quote(whatyousee) & " -compress jpeg -quality " & slQuality.value & " " & Quote(sOutputFile)
+    cmdline = "convert " & memlimit & Quote(whatyousee) & " -compress jpeg -quality " & slQuality.value & " " & Quote(sOutputFile)
   Else
-    cmdline = "convert " & " " & Quote(whatyousee) & " -quality " & slQuality.value & " " & Quote(sOutputFile)
+    cmdline = "convert " & memlimit & Quote(whatyousee) & " -quality " & slQuality.value & " " & Quote(sOutputFile)
   Endif
 
   Me.Mouse = Mouse.Wait
@@ -1554,6 +1572,8 @@ Public Sub btnScanMulti_Click()
   Wend
   FMain.Mouse = Mouse.Default
   If iPages > 0 Then
+    FMain.Mouse = Mouse.wait
+    Wait 0.05
     JoinPages("/tmp/gbscan.multipage.*", sMultiPageDestFile)
     Select Case Message.Question((("Multipage document saved as:") & "\n" & sMultiPageDestFile), ("Open Folder"), ("Open File"), "OK")
       Case 1
@@ -1578,20 +1598,20 @@ Public Sub JoinPages(pages As String, multipagefile As String)
 
   FMain.mouse = mouse.wait
   BigLabel.text = ("Please, wait while joining pages...")
+  BigLabel.show()
   Wait 0.05
   Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
   If Error Then
-    Shell "convert " & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
+    Shell "convert " & memlimit & Quote(sScanfile) & " " & Quote(sScanfile) To tmp
     Try dpi = getdpi(sliderw.value, image.Load(sScanfile).Width)
     If Error Then 
       message.Error(("Unable to load picture"))
       Return
     Endif
   Endif
-  Shell "convert " & Quote(pages) & "* -compress jpeg -quality " & slQuality.value & " -density " & dpi & " " & Quote(multipagefile) Wait
+  Shell "convert " & memlimit & Quote(pages) & "* -compress jpeg -quality " & slQuality.value & " -density " & dpi & " " & Quote(multipagefile) Wait
   FMain.mouse = mouse.Default
   BigLabel.text = ("Done.")
-
 End
 
 Public Sub btnTryFilters_Click()
@@ -1610,9 +1630,9 @@ Public Sub DoEffects(ByRef pic As Picture)
   Label13.text = ("Applying Effects...")
 
   If bIsPreview Then
-    Shell "convert " & Quote(sPreviewFile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
+    Shell "convert " & memlimit & Quote(sPreviewFile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
   Else
-    Shell "convert " & Quote(sScanfile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
+    Shell "convert " & memlimit & Quote(sScanfile) & " " & ParseEffects() & " " & Quote(sEffectFile) Wait
   Endif
   Label13.text = ("Transferring image...")
   Wait
